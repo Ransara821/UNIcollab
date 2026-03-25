@@ -1,0 +1,18 @@
+{
+  "name": "unicollab-root",
+  "version": "1.0.0",
+  "description": "UNIcollab MERN Stack Root",
+  "scripts": {
+    "install-all": "npm install && cd api-gateway && npm install && cd ../frontend && npm install && cd ../services/auth-service && npm install && cd ../kuppi-class-service && npm install && cd ../resource-sharing-service && npm install && cd ../study-group-service && npm install",
+    "dev": "concurrently \"npm run dev-gateway\" \"npm run dev-auth\" \"npm run dev-kuppi\" \"npm run dev-resource\" \"npm run dev-study\" \"npm run dev-frontend\"",
+    "dev-gateway": "cd api-gateway && npm run dev",
+    "dev-auth": "cd backend/auth-service && npm run dev",
+    "dev-kuppi": "cd backend/kuppi-class-service && npm run dev",
+    "dev-resource": "cd backend/resource-sharing-service && npm run dev",
+    "dev-study": "cd backend/study-group-service && npm run dev",
+    "dev-frontend": "cd frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
