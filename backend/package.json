@@ -1,0 +1,15 @@
+{
+  "name": "unicollab-backend",
+  "version": "1.0.0",
+  "description": "UNIcollab Backend Services",
+  "scripts": {
+    "dev": "concurrently \"cd auth-service && npm run dev\" \"cd kuppi-class-service && npm run dev\" \"cd resource-sharing-service && npm run dev\" \"cd study-group-service && npm run dev\"",
+    "dev-auth": "cd auth-service && npm run dev",
+    "dev-kuppi": "cd kuppi-class-service && npm run dev",
+    "dev-resource": "cd resource-sharing-service && npm run dev",
+    "dev-study": "cd study-group-service && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
