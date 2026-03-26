@@ -21,6 +21,7 @@ app.get('/', (req, res) => {
       kuppiClass: process.env.VACANCY_SERVICE_URL,
       resource:   process.env.RESOURCE_SERVICE_URL,
       studyGroup: process.env.STUDY_GROUP_SERVICE_URL,
+      quiz:       process.env.QUIZ_SERVICE_URL,
     }
   });
 });
@@ -35,6 +36,7 @@ app.get('/health', (req, res) => {
       'kuppi-class-service':    `${process.env.VACANCY_SERVICE_URL}/api/kuppi-class`,
       'resource-sharing-service': `${process.env.RESOURCE_SERVICE_URL}/api/resources`,
       'study-group-service':        `${process.env.STUDY_GROUP_SERVICE_URL}/api/study-groups`,
+      'quiz-service':               `${process.env.QUIZ_SERVICE_URL}/api/quizzes`,
     }
   });
 });
@@ -95,6 +97,17 @@ app.use('/api/study-groups', createProxyMiddleware({
   }
 }));
 
+// Quiz Service → http://localhost:5005
+app.use('/api/quizzes', createProxyMiddleware({
+  target: process.env.QUIZ_SERVICE_URL + '/api/quizzes',
+  changeOrigin: true,
+  on: {
+    error: (err, req, res) => {
+      res.status(503).json({ message: 'Quiz service unavailable' });
+    }
+  }
+}));
+
 // 404 handler
 // 404 handler
 app.use('*splat', (req, res) => {
@@ -111,6 +124,7 @@ app.listen(PORT, () => {
   /api/kuppi-class  → Kuppi Class Service   (${process.env.VACANCY_SERVICE_URL})
   /api/resources     → Resource Service      (${process.env.RESOURCE_SERVICE_URL})
   /api/study-groups → Study Group Service   (${process.env.STUDY_GROUP_SERVICE_URL})
+  /api/quizzes      → Quiz Service          (${process.env.QUIZ_SERVICE_URL})
 ─────────────────────────────────────
   `);
 });

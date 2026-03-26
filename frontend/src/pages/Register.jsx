@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { User, Hash, Phone, Mail, Lock, AlertCircle, BookMarked, ArrowRight } from 'lucide-react';
 
 export default function Register() {
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'student' });
+  const [form, setForm] = useState({ name: '', studentId: '', phone: '', email: '', password: '', role: 'student' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -25,81 +26,81 @@ export default function Register() {
     }
   };
 
+  const inputStyle = {
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(255,255,255,0.1)',
+  };
+  const focusStyle = { borderColor: '#4F46E5', boxShadow: '0 0 0 3px rgba(79,70,229,0.15)' };
+  const blurStyle = { borderColor: 'rgba(255,255,255,0.1)', boxShadow: 'none' };
+
+  const fields = [
+    { label: 'Full Name',    key: 'name',      type: 'text',     placeholder: 'Enter your full name',          icon: User },
+    { label: 'Student ID',   key: 'studentId', type: 'text',     placeholder: 'e.g. IT23100000',               icon: Hash },
+    { label: 'Phone Number', key: 'phone',     type: 'tel',      placeholder: 'e.g. +94 77 123 4567',         icon: Phone },
+    { label: 'Email Address',key: 'email',     type: 'email',    placeholder: 'name@university.edu',           icon: Mail },
+    { label: 'Password',     key: 'password',  type: 'password', placeholder: 'Create a strong password',      icon: Lock },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col justify-center relative overflow-hidden py-10 px-4">
-      {/* Background Blobs */}
-      <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-100/40 rounded-full blur-[80px] -z-10 animate-pulse"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-orange-100/30 rounded-full blur-[100px] -z-10 animate-pulse delay-1000"></div>
+    <div className="min-h-screen flex items-center justify-center px-6 py-12" style={{ background: '#0F172A' }}>
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] -z-0 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%)' }} />
 
-      {/* Top Left Logo */}
-      <div className="absolute top-6 left-6 flex items-center gap-2">
-        <span className="text-emerald-500 text-3xl">🎓</span>
-        <div className="font-bold text-xl text-slate-900 tracking-tight">
-          UNI<span className="text-emerald-500">collab</span>
+      <div className="w-full max-w-md relative z-10 animate-slide-up">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #4F46E5, #06B6D4)' }}>
+            <BookMarked size={18} color="white" />
+          </div>
+          <span className="text-2xl font-bold text-white">UNI<span style={{ color: '#06B6D4' }}>collab</span></span>
         </div>
-      </div>
 
-      <div className="w-full max-w-md mx-auto relative z-20">
-        <div className="bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] p-10 border border-slate-100/50">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Create Account</h2>
-            <p className="text-slate-500 font-medium">Join us for your academic success</p>
+        <div className="p-8 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold text-white mb-1">Create your account</h2>
+            <p className="text-slate-400">Join UNIcollab and start learning today</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2 font-medium border border-red-100">
-              <span className="text-lg">⚠️</span> {error}
+            <div className="flex items-center gap-2 p-3 rounded-xl mb-6 text-sm"
+              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' }}>
+              <AlertCircle size={16} /> {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-slate-700 ml-1">Full Name</label>
-              <input
-                type="text"
-                placeholder="Enter your full name"
-                value={form.name}
-                onChange={e => setForm({ ...form, name: e.target.value })}
-                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-slate-700 ml-1">Email</label>
-              <input
-                type="email"
-                placeholder="name@university.edu"
-                value={form.email}
-                onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
-                required
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
-              <input
-                type="password"
-                placeholder="Create a password"
-                value={form.password}
-                onChange={e => setForm({ ...form, password: e.target.value })}
-                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
-                required
-              />
-            </div>
-            
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-full shadow-lg shadow-emerald-500/25 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none mt-4 text-base"
-            >
-              {loading ? 'Creating account...' : 'Register Now'}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {fields.map(({ label, key, type, placeholder, icon: Icon }) => (
+              <div key={key}>
+                <label className="block text-sm font-medium mb-2" style={{ color: '#94A3B8' }}>{label}</label>
+                <div className="relative">
+                  <Icon size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#475569' }} />
+                  <input
+                    type={type}
+                    value={form[key]}
+                    onChange={e => setForm({ ...form, [key]: e.target.value })}
+                    placeholder={placeholder}
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-slate-600 outline-none transition-all"
+                    style={inputStyle}
+                    onFocus={e => Object.assign(e.target.style, focusStyle)}
+                    onBlur={e => Object.assign(e.target.style, blurStyle)}
+                  />
+                </div>
+              </div>
+            ))}
+
+            <button type="submit" disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white transition-all mt-2 disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #4F46E5, #06B6D4)' }}>
+              {loading ? 'Creating account...' : <><span>Create Account</span><ArrowRight size={16} /></>}
             </button>
           </form>
 
-          <p className="text-center text-slate-500 font-medium mt-10">
+          <p className="text-center mt-6 text-sm" style={{ color: '#64748B' }}>
             Already have an account?{' '}
-            <Link to="/login" className="text-emerald-600 font-bold hover:text-emerald-700 transition">
-              Login here
+            <Link to="/login" className="font-semibold hover:text-indigo-400 transition-colors" style={{ color: '#818CF8' }}>
+              Sign in
             </Link>
           </p>
         </div>

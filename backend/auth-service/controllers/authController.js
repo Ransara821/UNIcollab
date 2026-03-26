@@ -13,20 +13,25 @@ const generateToken = (user) => {
 // @POST /api/auth/register
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, studentId, phone, email, password, role } = req.body;
 
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
+    const existingId = await User.findOne({ studentId });
+    if (existingId) {
+      return res.status(400).json({ message: 'Student ID already registered' });
+    }
+
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashed, role });
+    const user = await User.create({ name, studentId, phone, email, password: hashed, role });
 
     res.status(201).json({
       message: 'User registered successfully',
       token: generateToken(user),
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: { id: user._id, name: user.name, studentId: user.studentId, phone: user.phone, email: user.email, role: user.role }
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

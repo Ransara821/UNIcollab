@@ -1,84 +1,101 @@
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import {
+  Users, GraduationCap, ClipboardList, BookOpen,
+  PlusCircle, FileText, Upload, Brain, TrendingUp,
+  UserCheck, Activity
+} from 'lucide-react';
+
+const StatCard = ({ label, value, icon: Icon, gradient }) => (
+  <div className="p-5 rounded-2xl border border-slate-200/60 bg-white hover:shadow-lg transition-all duration-200 group">
+    <div className="flex items-center justify-between mb-4">
+      <div className="w-11 h-11 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200"
+        style={{ background: gradient }}>
+        <Icon size={20} color="white" />
+      </div>
+      <TrendingUp size={16} style={{ color: '#94A3B8' }} />
+    </div>
+    <p className="text-2xl font-bold text-slate-900 mb-1">{value}</p>
+    <p className="text-sm text-slate-500">{label}</p>
+  </div>
+);
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const stats = [
-    { label: 'Total Students', value: '24', icon: '👥', color: 'bg-emerald-500' },
-    { label: 'Active Kuppi Classes', value: '12', icon: '🎓', color: 'bg-emerald-400' },
-    { label: 'Enrollments', value: '36', icon: '📋', color: 'bg-amber-400' },
-    { label: 'Study Materials', value: '8', icon: '📚', color: 'bg-orange-500' },
+    { label: 'Total Students', value: '24', icon: Users, gradient: 'linear-gradient(135deg, #4F46E5, #6366F1)' },
+    { label: 'Kuppi Classes', value: '12',  icon: GraduationCap, gradient: 'linear-gradient(135deg, #06B6D4, #0EA5E9)' },
+    { label: 'Enrollments', value: '36',    icon: ClipboardList,  gradient: 'linear-gradient(135deg, #7C3AED, #A78BFA)' },
+    { label: 'Resources', value: '8',       icon: BookOpen,        gradient: 'linear-gradient(135deg, #0F766E, #06B6D4)' },
   ];
 
   const quickActions = [
-    { label: 'Post New Kuppi Class', icon: '➕', path: '/admin/post-kuppi-class', color: 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100/50 shadow-sm hover:shadow-md' },
-    { label: 'View Enrollments', icon: '📄', path: '/admin/enrollments', color: 'bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-100/50 shadow-sm hover:shadow-md' },
-    { label: 'Upload Material', icon: '📤', path: '/admin/upload-material', color: 'bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-100/50 shadow-sm hover:shadow-md' },
-    { label: 'Create Quiz', icon: '✏️', path: '/admin/create-quiz', color: 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100/50 shadow-sm hover:shadow-md' },
+    { label: 'Post Kuppi Class', icon: PlusCircle, path: '/admin/post-kuppi-class', gradient: 'linear-gradient(135deg, #4F46E5, #6366F1)' },
+    { label: 'View Enrollments', icon: FileText,   path: '/admin/enrollments',       gradient: 'linear-gradient(135deg, #06B6D4, #0EA5E9)' },
+    { label: 'Upload Resource',  icon: Upload,     path: '/admin/upload-resource',   gradient: 'linear-gradient(135deg, #7C3AED, #A78BFA)' },
+    { label: 'Quiz Management',  icon: Brain,      path: '/admin/quiz-management',   gradient: 'linear-gradient(135deg, #0F766E, #06B6D4)' },
+  ];
+
+  const activity = [
+    { text: 'New student registered', time: '2 min ago', icon: UserCheck },
+    { text: 'New enrollment submitted', time: '15 min ago', icon: ClipboardList },
+    { text: 'Kuppi class posted', time: '1 hr ago', icon: GraduationCap },
+    { text: 'Study material uploaded', time: '2 hr ago', icon: Upload },
   ];
 
   return (
-    <div className="p-8">
+    <div className="p-8 max-w-6xl animate-fade-in">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">
-          Welcome, {user?.name}! 👋
-        </h1>
-        <p className="text-gray-500 mt-1">Here's your UNIcollab admin overview.</p>
+        <p className="text-sm font-medium" style={{ color: '#7C3AED' }}>Admin Panel</p>
+        <h1 className="text-3xl font-bold text-slate-900">Overview</h1>
+        <p className="text-slate-500 mt-1">Welcome back, {user?.name}. Here's your platform summary.</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => (
-          <div key={stat.label} className="bg-white rounded-xl shadow-sm p-6 flex items-center gap-4">
-            <div className={`${stat.color} w-12 h-12 rounded-lg flex items-center justify-center text-2xl`}>
-              {stat.icon}
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
-              <p className="text-gray-500 text-sm">{stat.label}</p>
-            </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {stats.map(s => <StatCard key={s.label} {...s} />)}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Actions */}
+        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200/60 p-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {quickActions.map(({ label, icon: Icon, path, gradient }) => (
+              <button key={label} onClick={() => navigate(path)}
+                className="flex items-center gap-3 p-4 rounded-xl border border-slate-100 hover:border-indigo-200 hover:shadow-sm transition-all duration-200 group text-left">
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ background: gradient }}>
+                  <Icon size={18} color="white" />
+                </div>
+                <span className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600">{label}</span>
+              </button>
+            ))}
           </div>
-        ))}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {quickActions.map((action) => (
-            <button
-              key={action.label}
-              onClick={() => navigate(action.path)}
-              className={`flex flex-col items-center p-4 rounded-xl transition-all cursor-pointer ${action.color}`}
-            >
-              <span className="text-3xl mb-2">{action.icon}</span>
-              <span className="text-sm font-medium text-center">{action.label}</span>
-            </button>
-          ))}
         </div>
-      </div>
 
-      {/* Recent Activity */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">Recent Activity</h2>
-        <div className="space-y-3">
-          {[
-            { text: 'New student registered', time: '2 mins ago', icon: '👤' },
-            { text: 'New enrollment submitted', time: '15 mins ago', icon: '📋' },
-            { text: 'Kuppi class posted successfully', time: '1 hour ago', icon: '🎓' },
-            { text: 'Study material uploaded', time: '2 hours ago', icon: '📚' },
-          ].map((activity, index) => (
-            <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-              <span className="text-2xl">{activity.icon}</span>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-700">{activity.text}</p>
+        {/* Recent Activity */}
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity size={18} style={{ color: '#4F46E5' }} />
+            <h2 className="text-lg font-bold text-slate-900">Recent Activity</h2>
+          </div>
+          <div className="space-y-3">
+            {activity.map(({ text, time, icon: Icon }, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 rounded-xl" style={{ background: '#F8FAFC' }}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: '#EEF2FF' }}>
+                  <Icon size={14} style={{ color: '#4F46E5' }} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-700">{text}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{time}</p>
+                </div>
               </div>
-              <p className="text-xs text-gray-400">{activity.time}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>

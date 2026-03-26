@@ -12,12 +12,18 @@ import KuppiClasses from './pages/student/KuppiClasses';
 import Enrollments from './pages/student/Enrollments';
 import ResourceSharing from './pages/student/ResourceSharing';
 import StudyGroupFinder from './pages/student/StudyGroupFinder';
+import QuizSection from './pages/student/QuizSection';
+import QuizList from './pages/student/QuizList';
+import QuizAttempt from './pages/student/QuizAttempt';
+import QuizResult from './pages/student/QuizResult';
+import Leaderboard from './pages/student/Leaderboard';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import PostKuppiClass from './pages/admin/PostKuppiClass';
 import ManageEnrollments from './pages/admin/ManageEnrollments';
 import UploadResource from './pages/admin/UploadResource';
 import CreateStudyGroup from './pages/admin/CreateStudyGroup';
+import AdminQuizManagement from './pages/admin/AdminQuizManagement';
 
 const StudentLayout = ({ children }) => (
   <div className="flex bg-gray-50 min-h-screen">
@@ -64,6 +70,24 @@ function AppRoutes() {
       <Route path="/student/study-groups" element={
         <ProtectedRoute><StudentLayout><StudyGroupFinder /></StudentLayout></ProtectedRoute>
       } />
+      <Route path="/student/quizzes" element={
+        <ProtectedRoute><StudentLayout><QuizSection /></StudentLayout></ProtectedRoute>
+      } />
+      <Route path="/student/quizzes/list" element={
+        <ProtectedRoute><StudentLayout><QuizList /></StudentLayout></ProtectedRoute>
+      } />
+      <Route path="/student/quizzes/:id/attempt" element={
+        <ProtectedRoute><QuizAttempt /></ProtectedRoute>
+      } />
+      <Route path="/student/quizzes/result/:attemptId" element={
+        <ProtectedRoute><StudentLayout><QuizResult /></StudentLayout></ProtectedRoute>
+      } />
+      <Route path="/student/quizzes/leaderboard" element={
+        <ProtectedRoute><StudentLayout><Leaderboard /></StudentLayout></ProtectedRoute>
+      } />
+      <Route path="/student/quizzes/:id/leaderboard" element={
+        <ProtectedRoute><StudentLayout><Leaderboard /></StudentLayout></ProtectedRoute>
+      } />
 
       {/* Admin Routes */}
       <Route path="/admin/dashboard" element={
@@ -83,6 +107,9 @@ function AppRoutes() {
       } />
       <Route path="/admin/create-study-group" element={
         <ProtectedRoute adminOnly={true}><AdminLayout><CreateStudyGroup /></AdminLayout></ProtectedRoute>
+      } />
+      <Route path="/admin/quiz-management" element={
+        <ProtectedRoute adminOnly={true}><AdminLayout><AdminQuizManagement /></AdminLayout></ProtectedRoute>
       } />
     </Routes>
   );
