@@ -15,8 +15,7 @@ export const loginUser = (data) => axios.post(`${API_URL}/auth/login`, data);
 export const getProfile = () => axios.get(`${API_URL}/auth/profile`, authHeaders());
 
 // Kuppi Classes
-export const getKuppiFilterOptions = () => axios.get(`${API_URL}/kuppi-class/filters`, authHeaders());
-export const getKuppiClasses = (params = {}) => axios.get(`${API_URL}/kuppi-class`, { ...authHeaders(), params });
+export const getKuppiClasses = () => axios.get(`${API_URL}/kuppi-class`, authHeaders());
 export const enrollKuppiClass = (id) => axios.post(`${API_URL}/kuppi-class/${id}/enroll`, {}, authHeaders());
 export const getMyEnrollments = () => axios.get(`${API_URL}/enrollments/my`, authHeaders());
 
