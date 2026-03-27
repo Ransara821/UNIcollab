@@ -30,6 +30,15 @@ const KuppiClassSchema = new mongoose.Schema(
     postedBy: {
       type: String,
     },
+    postedById: {
+      type: String,   // userId from JWT — used for recognition tracking
+    },
+    capacity: {
+      type: Number,
+      min: 1,
+      max: 200,
+      default: 20,
+    },
   },
   { timestamps: true }
 );
