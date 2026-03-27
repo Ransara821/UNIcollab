@@ -21,11 +21,11 @@ exports.getGroups = async (req, res) => {
 
 exports.createGroup = async (req, res) => {
   try {
-    const { name, subject, description, requiredSkills, workingStyle, maxSize, deadline, leaderName } = req.body;
+    const { name, groupNumber, subject, description, requiredSkills, workingStyle, maxSize, deadline, leaderName } = req.body;
     const skillVector = buildSkillVector(requiredSkills || []);
 
     const group = await StudyGroup.create({
-      name, subject, description,
+      name, groupNumber, subject, description,
       requiredSkills: requiredSkills || [],
       skillVector,
       workingStyle: workingStyle || 'mixed',

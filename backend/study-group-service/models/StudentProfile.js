@@ -5,6 +5,8 @@ const StudentProfileSchema = new mongoose.Schema({
   name:             String,
   email:            String,
   year:             { type: Number, enum: [1, 2, 3, 4] },
+  semester:         { type: Number, enum: [1, 2] },
+  gpa:              { type: Number, min: 0, max: 4 },
   faculty:          String,
   skills:           [String],
   workingStyle:     { type: String, enum: ['collaborative', 'independent', 'mixed'], default: 'mixed' },

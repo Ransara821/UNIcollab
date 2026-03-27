@@ -10,6 +10,10 @@ exports.sendRequest = async (req, res) => {
     if (group.members.some(m => m.userId === req.user.id))
       return res.status(400).json({ message: 'Already a member' });
 
+    const studentProfile = await StudentProfile.findOne({ userId: req.user.id });
+    if (studentProfile?.status === 'inGroup')
+      return res.status(400).json({ message: 'You are already in a group' });
+
     const existing = await JoinRequest.findOne({
       groupId: req.params.id, studentId: req.user.id, status: 'pending', direction: 'student-to-group',
     });

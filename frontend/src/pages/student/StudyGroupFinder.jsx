@@ -44,7 +44,7 @@ export default function StudyGroupFinder() {
   const [filterStyle, setFilterStyle]     = useState('');
   const [filterStatus, setFilterStatus]   = useState('open');
   const [pf, setPf] = useState({
-    year: 1, faculty: '', skills: [], workingStyle: 'mixed',
+    year: 1, semester: 1, gpa: '', faculty: '', skills: [], workingStyle: 'mixed',
     availability: {}, deadline: '', sosFlag: false, status: 'lookingForGroup',
   });
   const [skillInput, setSkillInput]             = useState('');
@@ -52,7 +52,7 @@ export default function StudyGroupFinder() {
 
   // Create group form
   const [newGroup, setNewGroup] = useState({
-    name: '', subject: '', description: '',
+    name: '', groupNumber: '', subject: '', description: '',
     requiredSkills: [], workingStyle: 'mixed', maxSize: 5, deadline: '',
   });
   const [newSkillInput, setNewSkillInput] = useState('');
@@ -94,6 +94,8 @@ export default function StudyGroupFinder() {
       const r = await getMyStudyProfile();
       setPf({
         year:         r.data.year || 1,
+        semester:     r.data.semester || 1,
+        gpa:          r.data.gpa !== undefined ? r.data.gpa : '',
         faculty:      r.data.faculty || '',
         skills:       r.data.skills || [],
         workingStyle: r.data.workingStyle || 'mixed',
@@ -232,11 +234,15 @@ export default function StudyGroupFinder() {
     const hasPending = myRequests.some(r => r.groupId?._id === g._id && r.status === 'pending' && r.direction === 'student-to-group');
     const isLeader = g.leader === myId;
     const isMember = (g.members || []).some(m => m.userId === myId);
+    const alreadyInAGroup = !!myGroup;
     return (
       <div className={`bg-white rounded-2xl border ${isSuggestion ? 'border-emerald-200' : 'border-slate-100'} shadow-sm p-5 hover:shadow-md transition-all flex flex-col`}>
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-slate-900 text-sm truncate">{g.name}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-slate-900 text-sm truncate">{g.name}</h3>
+              {g.groupNumber && <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full shrink-0">#{g.groupNumber}</span>}
+            </div>
             {g.subject && <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{g.subject}</span>}
           </div>
           <div className="flex flex-col items-end gap-1 ml-2 shrink-0">
@@ -261,7 +267,7 @@ export default function StudyGroupFinder() {
           <span>🧠 {g.workingStyle}</span>
           {g.deadline && <span>📅 {new Date(g.deadline).toLocaleDateString()}</span>}
         </div>
-        {!isLeader && !isMember && g.status === 'open' && (
+        {!isLeader && !isMember && g.status === 'open' && !alreadyInAGroup && (
           <button onClick={() => handleJoinRequest(g._id)} disabled={hasPending || actLoad[g._id]}
             className="w-full py-2 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50 transition-all">
             {actLoad[g._id] ? '...' : hasPending ? '✓ Requested' : 'Request to Join'}
@@ -399,6 +405,12 @@ export default function StudyGroupFinder() {
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400" />
               </div>
               <div>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Group Number</label>
+                <input type="text" placeholder="e.g. 03.01, 1.01, 03.02" value={newGroup.groupNumber}
+                  onChange={e => setNewGroup(p => ({ ...p, groupNumber: e.target.value }))}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400" />
+              </div>
+              <div>
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Subject / Topic *</label>
                 <input type="text" placeholder="e.g. Data Structures" value={newGroup.subject} required
                   onChange={e => setNewGroup(p => ({ ...p, subject: e.target.value }))}
@@ -485,6 +497,28 @@ export default function StudyGroupFinder() {
                       </button>
                     ))}
                   </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">Current Semester</label>
+                  <div className="flex gap-2">
+                    {[1, 2].map(s => (
+                      <button key={s} onClick={() => setPf(p => ({ ...p, semester: s }))}
+                        className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${pf.semester === s ? 'bg-emerald-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+                        Semester {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Current Semester GPA</label>
+                  <input
+                    type="number" min="0" max="4" step="0.01"
+                    placeholder="e.g. 3.75"
+                    value={pf.gpa}
+                    onChange={e => setPf(p => ({ ...p, gpa: e.target.value }))}
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400"
+                  />
+                  <p className="text-xs text-slate-300 mt-1">Scale: 0.00 – 4.00</p>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Faculty</label>

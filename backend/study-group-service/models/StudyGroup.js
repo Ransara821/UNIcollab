@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const StudyGroupSchema = new mongoose.Schema({
   name:          { type: String, required: true },
+  groupNumber:   { type: String, trim: true },
   subject:       String,
   description:   String,
   requiredSkills: [String],
