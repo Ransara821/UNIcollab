@@ -1,27 +1,35 @@
 const mongoose = require("mongoose");
+const { SUBJECTS, ACADEMIC_YEARS } = require('../constants/filterOptions');
 
 const KuppiClassSchema = new mongoose.Schema(
   {
     title: {
-         type: String, 
-         required: true 
+      type: String,
+      required: true,
     },
-    module: { 
-        type: String, 
-        required: true 
+    subject: {
+      type: String,
+      required: true,
+      enum: SUBJECTS,
     },
-    description: { 
-        type: String 
+    academicYear: {
+      type: String,
+      required: true,
+      enum: ACADEMIC_YEARS,
     },
-    location: { 
-        type: String 
+    description: {
+      type: String,
     },
-    deadline: { 
-        type: Date 
+    location: {
+      type: String,
     },
-    postedBy: { 
-        type: String 
-    }
+    sessionDate: {
+      type: Date,
+      required: true,
+    },
+    postedBy: {
+      type: String,
+    },
   },
   { timestamps: true }
 );
