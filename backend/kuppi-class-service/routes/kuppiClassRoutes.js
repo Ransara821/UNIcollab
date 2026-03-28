@@ -11,7 +11,7 @@ const {
 } = require('../controllers/kuppiClassController');
 
 const { getMyStatus, rateSession }                              = require('../controllers/recognitionController');
-const { applyForRecognition, getAllApplications, getMyApplication } = require('../controllers/recognitionApplicationController');
+const { applyForRecognition, getAllApplications, getMyApplication, updateMyApplication } = require('../controllers/recognitionApplicationController');
 
 // ── Static / named routes (must come before /:id) ────────────────────────────
 router.get('/filters',              getFilterOptions);
@@ -22,6 +22,7 @@ router.get('/my-sessions',          protect, getMySessions);
 router.post('/recognition/apply',   protect, applyForRecognition);   // submit form → instant recognition
 router.get('/recognition/all',      getAllApplications);              // public: list all tutors
 router.get('/recognition/mine',     protect, getMyApplication);      // own application status
+router.put('/recognition/mine',     protect, updateMyApplication);   // update own application details
 
 // ── Kuppi class CRUD ─────────────────────────────────────────────────────────
 router.get('/',    getAllKuppiClasses);

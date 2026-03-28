@@ -66,3 +66,32 @@ exports.getMyApplication = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch your application.', error: err.message });
   }
 };
+
+// PUT /api/kuppi-class/recognition/mine  (protect)
+// Updates the current user's recognition application details.
+exports.updateMyApplication = async (req, res) => {
+  try {
+    const { name, year, specialization, qualification } = req.body;
+
+    if (!name || !year || !specialization || !qualification) {
+      return res.status(400).json({ message: 'All fields (name, year, specialization, qualification) are required.' });
+    }
+
+    const application = await RecognitionApplication.findOneAndUpdate(
+      { studentId: req.user.id },
+      { name, year, specialization, qualification },
+      { new: true }
+    );
+
+    if (!application) {
+      return res.status(404).json({ message: 'You have not submitted a recognition application yet.' });
+    }
+
+    res.json({
+      message: 'Application updated successfully.',
+      application,
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update application.', error: err.message });
+  }
+};

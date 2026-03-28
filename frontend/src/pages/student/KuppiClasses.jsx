@@ -5,7 +5,7 @@ import {
   getMyRecognitionStatus, rateKuppiClass,
   createKuppiClass, getMySessions,
   updateKuppiClass, deleteKuppiClass,
-  applyForRecognition, getAllRecognitionApplications, getMyRecognitionApplication,
+  applyForRecognition, getAllRecognitionApplications, getMyRecognitionApplication, updateRecognitionApplication,
 } from '../../services/api';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -312,8 +312,13 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
   const [submitting, setSubmitting]   = useState(false);
   const [formErr, setFormErr]         = useState('');
   const [appsLoading, setAppsLoading] = useState(true);
+  const [isEditing, setIsEditing]     = useState(false);
+  const [editForm, setEditForm]       = useState(EMPTY_APP);
+  const [editErr, setEditErr]         = useState('');
+  const [editSubmitting, setEditSubmitting] = useState(false);
 
   const setField = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const setEditField = (k, v) => setEditForm(f => ({ ...f, [k]: v }));
 
   const loadAll = useCallback(() => {
     setAppsLoading(true);
@@ -325,7 +330,10 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
 
   useEffect(() => {
     getMyRecognitionApplication()
-      .then(r => setMyApp(r.data))   // null if not applied
+      .then(r => {
+        setMyApp(r.data);
+        if (r.data) setEditForm(r.data);  // initialize edit form with current data
+      })
       .catch(() => setMyApp(null));
     loadAll();
   }, [loadAll]);
@@ -336,6 +344,8 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
     try {
       const res = await applyForRecognition(form);
       setMyApp(res.data.application);
+      setForm(EMPTY_APP);
+      if (res.data.application) setEditForm(res.data.application);
       onRefreshRecognition();   // update badge + unlock Create Session tab
       loadAll();
     } catch (err) {
@@ -345,24 +355,98 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
     }
   };
 
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditSubmitting(true); setEditErr('');
+    try {
+      const res = await updateRecognitionApplication(editForm);
+      setMyApp(res.data.application);
+      setIsEditing(false);
+      onRefreshRecognition();
+      loadAll();
+    } catch (err) {
+      setEditErr(err.response?.data?.message || 'Update failed. Please try again.');
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
   const isRecognized = recognition?.recognitionStatus === 'recognized';
+  const completedSessions = recognition?.completedSessionsCount ?? 0;
+  const minSessions = recognition?.thresholds?.MIN_COMPLETED_SESSIONS ?? 3;
+  const hasCompletedRequired = completedSessions >= minSessions;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
 
-      {/* ── My Recognition Status ── */}
+      {/* ── Edit Modal ── */}
+      {isEditing && myApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 my-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-extrabold text-slate-800">Edit Recognition Details</h2>
+              <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+            </div>
+            {editErr && <p className="text-red-500 text-sm mb-4 font-medium">⚠️ {editErr}</p>}
+            <form onSubmit={handleEditSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Full Name *</label>
+                  <input required value={editForm.name} onChange={e => setEditField('name', e.target.value)}
+                    placeholder="e.g. Kasun Perera"
+                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Academic Year *</label>
+                  <input required value={editForm.year} onChange={e => setEditField('year', e.target.value)}
+                    placeholder="e.g. Year 2"
+                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Specialization *</label>
+                  <input required value={editForm.specialization} onChange={e => setEditField('specialization', e.target.value)}
+                    placeholder="e.g. Computer Science"
+                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Qualification *</label>
+                  <input required value={editForm.qualification} onChange={e => setEditField('qualification', e.target.value)}
+                    placeholder="e.g. BSc (Hons) in IT"
+                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsEditing(false)} disabled={editSubmitting}
+                  className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50">
+                  Cancel
+                </button>
+                <button type="submit" disabled={editSubmitting}
+                  className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition disabled:opacity-50">
+                  {editSubmitting ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
       {myApp === undefined ? (
         <div className="py-10 text-center text-slate-400">Loading…</div>
-      ) : myApp ? (
-        /* Already applied — show recognition card */
+      ) : myApp && hasCompletedRequired ? (
+        /* Already applied and completed required sessions — show recognition card */
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-2xl shadow-sm">🏅</div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-0.5">Recognition Granted</p>
-              <h2 className="text-xl font-extrabold text-emerald-800">You are a Recognized Tutor</h2>
-              <p className="text-sm text-emerald-600 mt-0.5">You can now create and manage Kuppi sessions.</p>
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-2xl shadow-sm">🏅</div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-0.5">Recognition Granted</p>
+                <h2 className="text-xl font-extrabold text-emerald-800">You are a Recognized Tutor</h2>
+                <p className="text-sm text-emerald-600 mt-0.5">You can now create and manage Kuppi sessions.</p>
+              </div>
             </div>
+            <button onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-white hover:bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs font-bold rounded-xl transition whitespace-nowrap">
+              ✏️ Edit
+            </button>
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             {[
@@ -376,6 +460,44 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
                 <p className="font-semibold text-slate-800">{value}</p>
               </div>
             ))}
+          </div>
+        </div>
+      ) : myApp && !hasCompletedRequired ? (
+        /* Applied but not yet completed required sessions — show progress */
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-2xl shadow-sm">⏳</div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-0.5">Application Pending</p>
+                <h2 className="text-xl font-extrabold text-amber-800">Complete {minSessions} Sessions</h2>
+                <p className="text-sm text-amber-600 mt-0.5">You need to complete {minSessions - completedSessions} more session(s) to be recognized.</p>
+              </div>
+            </div>
+            <button onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-white hover:bg-amber-50 border border-amber-200 text-amber-600 text-xs font-bold rounded-xl transition whitespace-nowrap">
+              ✏️ Edit
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+            {[
+              { label: 'Name',           value: myApp.name },
+              { label: 'Year',           value: myApp.year },
+              { label: 'Specialization', value: myApp.specialization },
+              { label: 'Qualification',  value: myApp.qualification },
+            ].map(({ label, value }) => (
+              <div key={label} className="bg-white/70 rounded-xl px-4 py-3 border border-amber-100">
+                <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-0.5">{label}</p>
+                <p className="font-semibold text-slate-800">{value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="bg-white rounded-xl px-4 py-3 border border-amber-100">
+            <p className="text-sm font-semibold text-slate-700 mb-2">Completed Sessions: {completedSessions} / {minSessions}</p>
+            <div className="w-full bg-amber-100 rounded-full h-2.5">
+              <div className="bg-amber-500 h-2.5 rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, (completedSessions / minSessions) * 100)}%` }} />
+            </div>
           </div>
         </div>
       ) : (
