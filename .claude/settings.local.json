@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(for svc:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/PodiDayah/Documents/GitHub/UNIcollab/backend/$svc/**)",
+      "Bash(netstat -ano)",
+      "Read(//c/Users/PodiDayah/Documents/GitHub/UNIcollab/backend/study-group-service/**)",
+      "Bash(xargs -I{} taskkill /PID {} /F)"
+    ]
+  }
+}

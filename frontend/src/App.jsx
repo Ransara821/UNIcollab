@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import AdminSidebar from './components/AdminSidebar';
 import LoadingScreen from './components/LoadingScreen';
@@ -12,6 +13,7 @@ import KuppiClasses from './pages/student/KuppiClasses';
 import Enrollments from './pages/student/Enrollments';
 import ResourceSharing from './pages/student/ResourceSharing';
 import StudyGroupFinder from './pages/student/StudyGroupFinder';
+import Feedback from './pages/student/Feedback';
 import QuizSection from './pages/student/QuizSection';
 import SemesterSelection from './pages/student/SemesterSelection';
 import QuizList from './pages/student/QuizList';
@@ -25,6 +27,7 @@ import PostKuppiClass from './pages/admin/PostKuppiClass';
 import ManageEnrollments from './pages/admin/ManageEnrollments';
 import UploadResource from './pages/admin/UploadResource';
 import CreateStudyGroup from './pages/admin/CreateStudyGroup';
+import FeedbackReport from './pages/admin/FeedbackReport';
 import AdminQuizManagement from './pages/admin/AdminQuizManagement';
 import QuizQuestionEditor from './pages/admin/QuizQuestionEditor';
 import AdminSubjects from './pages/admin/AdminSubjects';
@@ -81,6 +84,9 @@ function AppRoutes() {
       <Route path="/student/study-groups" element={
         <ProtectedRoute><StudentLayout><StudyGroupFinder /></StudentLayout></ProtectedRoute>
       } />
+      <Route path="/student/feedback" element={
+        <ProtectedRoute><StudentLayout><Feedback /></StudentLayout></ProtectedRoute>
+      } />
 
       {/* Quiz Student Routes */}
       <Route path="/student/quizzes" element={
@@ -126,6 +132,9 @@ function AppRoutes() {
       } />
       <Route path="/admin/create-study-group" element={
         <ProtectedRoute adminOnly={true}><AdminLayout><CreateStudyGroup /></AdminLayout></ProtectedRoute>
+      } />
+      <Route path="/admin/feedback-report" element={
+        <ProtectedRoute adminOnly={true}><AdminLayout><FeedbackReport /></AdminLayout></ProtectedRoute>
       } />
       <Route path="/admin/quiz-management" element={
         <ProtectedRoute adminOnly={true}><AdminLayout><AdminQuizManagement /></AdminLayout></ProtectedRoute>
