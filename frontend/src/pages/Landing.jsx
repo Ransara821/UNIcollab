@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookMarked, Users, BookOpen, BrainCircuit, ChevronRight, MapPin, Mail, ArrowRight, CheckCircle2, Star, PlayCircle, Award, File as FileIcon } from 'lucide-react';
 
@@ -185,6 +186,38 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Feedbacks Section */}
+      {feedbacks.length > 0 && (
+        <section className="py-24 bg-slate-50">
+          <div className="container mx-auto px-6 text-center">
+            <div className="text-emerald-500 font-bold uppercase tracking-wider mb-2">TESTIMONIALS</div>
+            <h2 className="text-4xl font-extrabold text-slate-900 mb-12">What Our Students Say</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
+              {feedbacks.map(fb => (
+                <div key={fb._id} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 transition-transform hover:-translate-y-1 hover:shadow-md flex flex-col">
+                  <div className="flex gap-1 text-amber-400 mb-4 text-xl">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i}>{i < fb.rating ? '★' : '☆'}</span>
+                    ))}
+                  </div>
+                  <p className="text-slate-600 mb-6 italic leading-relaxed flex-1">"{fb.comment}"</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-slate-50">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-600">
+                      {fb.user?.name?.charAt(0) || 'U'}
+                    </div>
+                    <div className="font-bold text-slate-900">{fb.user?.name || 'Anonymous Student'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Footer */}
+      <footer className="bg-[#0B1A2C] text-slate-400 py-16">
+        <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+          <div className="col-span-1 md:col-span-1">
       {/* ── Footer ───────────────────────────────────── */}
       <footer className="bg-slate-900 pt-16 pb-8 px-6 text-slate-300">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">

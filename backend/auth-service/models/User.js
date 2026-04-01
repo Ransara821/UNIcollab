@@ -6,16 +6,11 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  studentId: {
+  phoneNumber: {
     type: String,
     required: true,
-    unique: true,
-    trim: true
-  },
-  phone: {
-    type: String,
-    required: true,
-    trim: true
+    trim: true,
+    match: [/^\d{10}$/, 'Phone number must be exactly 10 digits']
   },
   email: {
     type: String,
@@ -31,6 +26,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['student', 'admin'],
     default: 'student'
+  },
+  status: {
+    type: String,
+    enum: ['active', 'inactive'],
+    default: 'active'
   }
 }, { timestamps: true });
 

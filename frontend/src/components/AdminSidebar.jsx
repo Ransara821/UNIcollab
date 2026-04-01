@@ -17,6 +17,8 @@ const navItems = [
   { path: '/admin/subjects',           label: 'Course Subjects',   icon: Book },
   { path: '/admin/quiz-management',    label: 'Quiz Management',   icon: BrainCircuit },
   { path: '/admin/student-attempts',   label: 'Student Attempts',  icon: MonitorCheck },
+  { path: '/admin/feedback-report',    label: 'Feedback Report'},
+
 ];
 
 export default function AdminSidebar() {

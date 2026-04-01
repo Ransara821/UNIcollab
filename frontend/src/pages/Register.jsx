@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { User, Hash, Phone, Mail, Lock, AlertCircle, BookMarked, ArrowRight } from 'lucide-react';
 
 export default function Register() {
-  const [form, setForm] = useState({ name: '', studentId: '', phone: '', email: '', password: '', role: 'student' });
+  const [form, setForm] = useState({ name: '', phoneNumber: '', email: '', password: '', role: 'student' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -16,9 +16,9 @@ export default function Register() {
     setLoading(true);
     setError('');
     try {
-      const res = await registerUser(form);
-      login(res.data.token, res.data.user);
-      navigate('/student/dashboard');
+      await registerUser(form);
+      // Redirect to login page instead of dashboard
+      navigate('/login', { state: { message: 'Account created successfully! Please log in.' } });
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -61,30 +61,64 @@ export default function Register() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {fields.map(({ label, key, type, placeholder, icon: Icon }) => (
-              <div key={key}>
-                <label className="block text-sm font-bold text-slate-700 mb-1.5 px-1">{label}</label>
-                <div className="relative">
-                  <Icon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type={type}
-                    value={form[key]}
-                    onChange={e => setForm({ ...form, [key]: e.target.value })}
-                    placeholder={placeholder}
-                    required
-                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-slate-800 placeholder-slate-400 bg-slate-50 border border-slate-200 outline-none transition-all focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold"
-                  />
-                </div>
-              </div>
-            ))}
-
-            <div className="pt-4">
-              <button type="submit" disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-white transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:active:scale-100 disabled:hover:translate-y-0 shadow-lg shadow-emerald-500/25"
-                style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
-                {loading ? 'Creating account...' : <><span>Create Account</span><ArrowRight size={18} /></>}
-              </button>
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700 ml-1">Full Name</label>
+              <input
+                type="text"
+                placeholder="Enter your full name"
+                value={form.name}
+                onChange={e => setForm({ ...form, name: e.target.value })}
+                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
+                required
+              />
             </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700 ml-1">Phone Number</label>
+              <input
+                type="tel"
+                placeholder="Enter 10-digit phone number"
+                value={form.phoneNumber}
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  if (val.length <= 10) setForm({ ...form, phoneNumber: val });
+                }}
+                pattern="[0-9]{10}"
+                title="Phone number must be exactly 10 digits"
+                maxLength="10"
+                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700 ml-1">Email</label>
+              <input
+                type="email"
+                placeholder="name@university.edu"
+                value={form.email}
+                onChange={e => setForm({ ...form, email: e.target.value })}
+                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
+              <input
+                type="password"
+                placeholder="Create a password"
+                value={form.password}
+                onChange={e => setForm({ ...form, password: e.target.value })}
+                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-full shadow-lg shadow-emerald-500/25 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none mt-4 text-base"
+            >
+              {loading ? 'Creating account...' : 'Register Now'}
+            </button>
           </form>
 
           <p className="text-center mt-8 text-sm font-medium text-slate-500">

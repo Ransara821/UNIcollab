@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { loginUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, AlertCircle, BookMarked, ArrowRight, CheckCircle2 } from 'lucide-react';
@@ -10,6 +10,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.message;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -85,6 +87,12 @@ export default function Login() {
               <p className="text-slate-500 font-medium">Please enter your credentials</p>
             </div>
 
+            {successMessage && (
+              <div className="bg-emerald-50 text-emerald-600 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2 font-medium border border-emerald-100">
+                <span className="text-lg">✅</span> {successMessage}
+              </div>
+            )}
+
             {error && (
               <div className="flex items-center gap-3 p-4 rounded-xl mb-6 text-sm font-bold bg-red-50 border border-red-100 text-red-600">
                 <AlertCircle size={18} className="shrink-0" />
@@ -103,16 +111,24 @@ export default function Login() {
                   />
                 </div>
               </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
+                <input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={form.password}
+                  onChange={e => setForm({ ...form, password: e.target.value })}
+                  className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
+                  required
+                />
+              </div>
 
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Password</label>
-                <div className="relative">
-                  <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
-                    placeholder="Enter your password" required
-                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-slate-800 placeholder-slate-400 bg-slate-50 border border-slate-200 outline-none transition-all focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold"
-                  />
-                </div>
+              <div className="flex items-center justify-between text-sm px-1 pt-2">
+                <label className="flex items-center gap-2 text-slate-500 font-medium cursor-pointer hover:text-slate-700 transition">
+                  <input type="checkbox" className="rounded text-emerald-500 focus:ring-emerald-500 w-4 h-4 cursor-pointer" />
+                  Remember me
+                </label>
+                <a href="#" className="text-emerald-600 font-bold hover:text-emerald-700 transition">Forgot password?</a>
               </div>
 
               <div className="pt-4">
