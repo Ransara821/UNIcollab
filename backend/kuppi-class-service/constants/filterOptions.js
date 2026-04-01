@@ -20,4 +20,10 @@ const ACADEMIC_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4'];
 
 const SESSION_STATUSES = ['upcoming', 'completed'];
 
-module.exports = { SUBJECTS, ACADEMIC_YEARS, SESSION_STATUSES };
+// Thresholds for automatic recognition upgrade
+const RECOGNITION_THRESHOLDS = {
+  MIN_COMPLETED_SESSIONS: 3,
+  MIN_AVERAGE_RATING: 4.0,
+};
+
+module.exports = { SUBJECTS, ACADEMIC_YEARS, SESSION_STATUSES, RECOGNITION_THRESHOLDS };
