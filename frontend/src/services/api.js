@@ -13,12 +13,21 @@ export const getAllUsers = () => axios.get(`${API_URL}/auth/users`, authHeaders(
 export const updateUserStatus = (id, status) => axios.put(`${API_URL}/auth/users/${id}/status`, { status }, authHeaders());
 export const deleteUser = (id) => axios.delete(`${API_URL}/auth/users/${id}`, authHeaders());
 
-// ── Kuppi Classes ──
-// Merged: Kept your functions and added the getKuppiFilterOptions from main
-export const getKuppiFilterOptions = () => axios.get(`${API_URL}/kuppi-class/filters`, authHeaders());
-export const getKuppiClasses  = (params = {}) => axios.get(`${API_URL}/kuppi-class`, { ...authHeaders(), params });
-export const enrollKuppiClass = (id)          => axios.post(`${API_URL}/kuppi-class/${id}/enroll`, {}, authHeaders());
-export const getMyEnrollments = ()           => axios.get(`${API_URL}/enrollments/my`, authHeaders());
+// Kuppi Classes
+export const getKuppiFilterOptions  = () => axios.get(`${API_URL}/kuppi-class/filters`, authHeaders());
+export const getKuppiClasses        = (params = {}) => axios.get(`${API_URL}/kuppi-class`, { ...authHeaders(), params });
+export const createKuppiClass       = (data) => axios.post(`${API_URL}/kuppi-class`, data, authHeaders());
+export const enrollKuppiClass       = (id) => axios.post(`${API_URL}/kuppi-class/${id}/enroll`, {}, authHeaders());
+export const getMyEnrollments       = () => axios.get(`${API_URL}/enrollments/my`, authHeaders());
+export const getMyRecognitionStatus = () => axios.get(`${API_URL}/kuppi-class/my-status`, authHeaders());
+export const rateKuppiClass         = (id, rating) => axios.post(`${API_URL}/kuppi-class/${id}/rate`, { rating }, authHeaders());
+export const getMySessions                = () => axios.get(`${API_URL}/kuppi-class/my-sessions`, authHeaders());
+export const updateKuppiClass             = (id, data) => axios.put(`${API_URL}/kuppi-class/${id}`, data, authHeaders());
+export const deleteKuppiClass             = (id) => axios.delete(`${API_URL}/kuppi-class/${id}`, authHeaders());
+export const applyForRecognition          = (data) => axios.post(`${API_URL}/kuppi-class/recognition/apply`, data, authHeaders());
+export const getAllRecognitionApplications = () => axios.get(`${API_URL}/kuppi-class/recognition/all`);
+export const getMyRecognitionApplication  = () => axios.get(`${API_URL}/kuppi-class/recognition/mine`, authHeaders());
+export const updateRecognitionApplication = (data) => axios.put(`${API_URL}/kuppi-class/recognition/mine`, data, authHeaders());
 
 // ── Resource Sharing ──
 export const getResources   = ()     => axios.get(`${API_URL}/resources`, authHeaders());
