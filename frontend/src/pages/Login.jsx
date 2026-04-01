@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { loginUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Mail, Lock, AlertCircle, BookMarked, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -19,38 +20,71 @@ export default function Login() {
     try {
       const res = await loginUser(form);
       login(res.data.token, res.data.user);
-      if (res.data.user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/student/dashboard');
-      }
+      navigate(res.data.user.role === 'admin' ? '/admin/dashboard' : '/student/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col justify-center relative overflow-hidden">
-      {/* Background Blobs */}
-      <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-100/40 rounded-full blur-[80px] -z-10 animate-pulse"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-orange-100/30 rounded-full blur-[100px] -z-10 animate-pulse delay-1000"></div>
+    <div className="min-h-screen flex font-sans text-slate-800 bg-white selection:bg-emerald-100 selection:text-emerald-900">
+      {/* Left Panel - Light Mode Theme */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden bg-slate-50">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-100/40 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 -z-0 mix-blend-multiply" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-teal-50/60 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 -z-0 mix-blend-multiply" />
 
-      {/* Top Left Logo */}
-      <div className="absolute top-6 left-6 flex items-center gap-2">
-        <span className="text-emerald-500 text-3xl">🎓</span>
-        <div className="font-bold text-xl text-slate-900 tracking-tight">
-          UNI<span className="text-emerald-500">collab</span>
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/20">
+            <BookMarked size={20} color="white" />
+          </div>
+          <span className="text-2xl font-black text-slate-900 tracking-tight">
+            UNI<span className="text-emerald-500">collab</span>
+          </span>
         </div>
+
+        <div className="relative z-10 max-w-lg">
+          <h1 className="text-5xl font-black text-slate-900 mb-6 leading-[1.15] tracking-tight">
+            Welcome back to your <br />
+            <span className="text-emerald-500">learning hub.</span>
+          </h1>
+          <p className="text-slate-500 text-lg leading-relaxed font-medium mb-12">
+            Access kuppi classes, study materials, group sessions, and more — all in one unified platform.
+          </p>
+          
+          <div className="space-y-4">
+            {['Connect with top student tutors', 'Access curated past papers', 'Join faculty study groups'].map((item) => (
+              <div key={item} className="flex items-center gap-3 bg-white pr-6 pl-2 py-2 rounded-full border border-slate-100 w-fit font-bold text-sm text-slate-700 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500">
+                  <CheckCircle2 size={16} />
+                </div>
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-slate-400 font-medium text-sm relative z-10">© {new Date().getFullYear()} UNIcollab. All rights reserved.</p>
       </div>
 
-      <div className="container mx-auto px-6 flex items-center justify-center">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] p-10 border border-slate-100/50 relative z-20">
-            <div className="text-center mb-10">
-              <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Welcome Back!</h2>
-              <p className="text-slate-500 font-medium">Log in to continue your learning journey</p>
+      {/* Right Panel - Form */}
+      <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 bg-white relative">
+        {/* Mobile Logo */}
+        <div className="lg:hidden flex items-center gap-3 mb-12">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-400 shadow-md shadow-emerald-500/20">
+            <BookMarked size={20} color="white" />
+          </div>
+          <span className="text-2xl font-black text-slate-900 tracking-tight">
+            UNI<span className="text-emerald-500">collab</span>
+          </span>
+        </div>
+
+        <div className="w-full max-w-md animate-in slide-in-from-bottom-4 duration-500 relative z-10">
+          <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-900/5">
+            <div className="mb-8 items-center text-center">
+              <h2 className="text-3xl font-black text-slate-900 mb-2">Sign in</h2>
+              <p className="text-slate-500 font-medium">Please enter your credentials</p>
             </div>
 
             {successMessage && (
@@ -60,22 +94,22 @@ export default function Login() {
             )}
 
             {error && (
-              <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2 font-medium border border-red-100">
-                <span className="text-lg">⚠️</span> {error}
+              <div className="flex items-center gap-3 p-4 rounded-xl mb-6 text-sm font-bold bg-red-50 border border-red-100 text-red-600">
+                <AlertCircle size={18} className="shrink-0" />
+                {error}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
-                <input
-                  type="email"
-                  placeholder="name@university.edu"
-                  value={form.email}
-                  onChange={e => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
-                  required
-                />
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Email Address</label>
+                <div className="relative">
+                  <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+                    placeholder="Enter your email" required
+                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-slate-800 placeholder-slate-400 bg-slate-50 border border-slate-200 outline-none transition-all focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold"
+                  />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
@@ -97,19 +131,19 @@ export default function Login() {
                 <a href="#" className="text-emerald-600 font-bold hover:text-emerald-700 transition">Forgot password?</a>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-full shadow-lg shadow-emerald-500/25 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none mt-4 text-base"
-              >
-                {loading ? 'Logging in...' : 'Login to Account'}
-              </button>
+              <div className="pt-4">
+                <button type="submit" disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-white transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:active:scale-100 disabled:hover:translate-y-0 shadow-lg shadow-emerald-500/25"
+                  style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
+                  {loading ? 'Signing in...' : <><span>Sign in</span><ArrowRight size={18} /></>}
+                </button>
+              </div>
             </form>
 
-            <p className="text-center text-slate-500 font-medium mt-10">
+            <p className="text-center mt-8 text-sm font-medium text-slate-500">
               Don't have an account?{' '}
-              <Link to="/register" className="text-emerald-600 font-bold hover:text-emerald-700 transition">
-                Register here
+              <Link to="/register" className="font-bold text-emerald-600 hover:text-emerald-500 transition-colors">
+                Sign up
               </Link>
             </p>
           </div>

@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const generateToken = (user) => {
   return jwt.sign(
-    { id: user._id, role: user.role },
+    { id: user._id, role: user.role, studentId: user.studentId, name: user.name },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   );
@@ -18,6 +18,11 @@ exports.register = async (req, res) => {
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    const existingId = await User.findOne({ studentId });
+    if (existingId) {
+      return res.status(400).json({ message: 'Student ID already registered' });
     }
 
     const hashed = await bcrypt.hash(password, 10);

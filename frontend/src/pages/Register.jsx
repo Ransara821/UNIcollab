@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { User, Hash, Phone, Mail, Lock, AlertCircle, BookMarked, ArrowRight } from 'lucide-react';
 
 export default function Register() {
   const [form, setForm] = useState({ name: '', phoneNumber: '', email: '', password: '', role: 'student' });
@@ -25,30 +26,37 @@ export default function Register() {
     }
   };
 
+  const fields = [
+    { label: 'Full Name',    key: 'name',      type: 'text',     placeholder: 'Enter your full name',          icon: User },
+    { label: 'Student ID',   key: 'studentId', type: 'text',     placeholder: 'e.g. IT23100000',               icon: Hash },
+    { label: 'Phone Number', key: 'phone',     type: 'tel',      placeholder: 'e.g. +94 77 123 4567',         icon: Phone },
+    { label: 'Email Address',key: 'email',     type: 'email',    placeholder: 'name@university.edu',           icon: Mail },
+    { label: 'Password',     key: 'password',  type: 'password', placeholder: 'Create a strong password',      icon: Lock },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 flex flex-col justify-center relative overflow-hidden py-10 px-4">
-      {/* Background Blobs */}
-      <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-emerald-100/40 rounded-full blur-[80px] -z-10 animate-pulse"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-orange-100/30 rounded-full blur-[100px] -z-10 animate-pulse delay-1000"></div>
+    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-slate-50 font-sans text-slate-800 selection:bg-emerald-100 selection:text-emerald-900 overflow-hidden relative">
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-200/40 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none -z-0" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-teal-100/60 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/3 pointer-events-none -z-0" />
 
-      {/* Top Left Logo */}
-      <div className="absolute top-6 left-6 flex items-center gap-2">
-        <span className="text-emerald-500 text-3xl">🎓</span>
-        <div className="font-bold text-xl text-slate-900 tracking-tight">
-          UNI<span className="text-emerald-500">collab</span>
+      <div className="w-full max-w-[480px] relative z-10 animate-in slide-in-from-bottom-4 duration-500">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-3 mb-10">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 bg-gradient-to-br from-emerald-500 to-teal-400">
+            <BookMarked size={24} color="white" />
+          </div>
+          <span className="text-3xl font-black text-slate-900 tracking-tight">UNI<span className="text-emerald-500">collab</span></span>
         </div>
-      </div>
 
-      <div className="w-full max-w-md mx-auto relative z-20">
-        <div className="bg-white rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] p-10 border border-slate-100/50">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Create Account</h2>
-            <p className="text-slate-500 font-medium">Join us for your academic success</p>
+        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] ring-1 ring-slate-900/5">
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-black text-slate-900 mb-2">Create your account</h2>
+            <p className="text-slate-500 font-medium">Join UNIcollab and start learning today</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2 font-medium border border-red-100">
-              <span className="text-lg">⚠️</span> {error}
+            <div className="flex items-center gap-3 p-4 rounded-xl mb-6 text-sm font-bold bg-red-50 border border-red-100 text-red-600">
+              <AlertCircle size={18} className="shrink-0" /> {error}
             </div>
           )}
 
@@ -113,10 +121,10 @@ export default function Register() {
             </button>
           </form>
 
-          <p className="text-center text-slate-500 font-medium mt-10">
+          <p className="text-center mt-8 text-sm font-medium text-slate-500">
             Already have an account?{' '}
-            <Link to="/login" className="text-emerald-600 font-bold hover:text-emerald-700 transition">
-              Login here
+            <Link to="/login" className="font-bold text-emerald-600 hover:text-emerald-500 transition-colors">
+              Sign in
             </Link>
           </p>
         </div>
