@@ -35,8 +35,7 @@ import AdminStudentAttempts from './pages/admin/AdminStudentAttempts';
 
 
 const StudentLayout = ({ children }) => (
-  <div className="flex bg-gray-50 min-h-screen pt-20">
-    <Navbar />
+  <div className="flex bg-gray-50 min-h-screen">
     <Sidebar />
     <main className="ml-64 flex-1">{children}</main>
   </div>
@@ -136,6 +135,7 @@ function AppRoutes() {
       } />
       <Route path="/admin/feedback-report" element={
         <ProtectedRoute adminOnly={true}><AdminLayout><FeedbackReport /></AdminLayout></ProtectedRoute>
+      } />
       <Route path="/admin/quiz-management" element={
         <ProtectedRoute adminOnly={true}><AdminLayout><AdminQuizManagement /></AdminLayout></ProtectedRoute>
       } />

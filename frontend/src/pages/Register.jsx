@@ -28,7 +28,6 @@ export default function Register() {
 
   const fields = [
     { label: 'Full Name',    key: 'name',      type: 'text',     placeholder: 'Enter your full name',          icon: User },
-    { label: 'Student ID',   key: 'studentId', type: 'text',     placeholder: 'e.g. IT23100000',               icon: Hash },
     { label: 'Phone Number', key: 'phone',     type: 'tel',      placeholder: 'e.g. +94 77 123 4567',         icon: Phone },
     { label: 'Email Address',key: 'email',     type: 'email',    placeholder: 'name@university.edu',           icon: Mail },
     { label: 'Password',     key: 'password',  type: 'password', placeholder: 'Create a strong password',      icon: Lock },
