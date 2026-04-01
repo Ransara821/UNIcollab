@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { loginUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,6 +9,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const successMessage = location.state?.message;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,6 +53,12 @@ export default function Login() {
               <p className="text-slate-500 font-medium">Log in to continue your learning journey</p>
             </div>
 
+            {successMessage && (
+              <div className="bg-emerald-50 text-emerald-600 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2 font-medium border border-emerald-100">
+                <span className="text-lg">✅</span> {successMessage}
+              </div>
+            )}
+
             {error && (
               <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl mb-6 text-sm flex items-center gap-2 font-medium border border-red-100">
                 <span className="text-lg">⚠️</span> {error}
@@ -80,10 +88,10 @@ export default function Login() {
                   required
                 />
               </div>
-              
+
               <div className="flex items-center justify-between text-sm px-1 pt-2">
                 <label className="flex items-center gap-2 text-slate-500 font-medium cursor-pointer hover:text-slate-700 transition">
-                  <input type="checkbox" className="rounded text-emerald-500 focus:ring-emerald-500 w-4 h-4 cursor-pointer" /> 
+                  <input type="checkbox" className="rounded text-emerald-500 focus:ring-emerald-500 w-4 h-4 cursor-pointer" />
                   Remember me
                 </label>
                 <a href="#" className="text-emerald-600 font-bold hover:text-emerald-700 transition">Forgot password?</a>

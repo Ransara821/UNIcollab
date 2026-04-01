@@ -4,7 +4,7 @@ import { registerUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 export default function Register() {
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'student' });
+  const [form, setForm] = useState({ name: '', phoneNumber: '', email: '', password: '', role: 'student' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -15,9 +15,9 @@ export default function Register() {
     setLoading(true);
     setError('');
     try {
-      const res = await registerUser(form);
-      login(res.data.token, res.data.user);
-      navigate('/student/dashboard');
+      await registerUser(form);
+      // Redirect to login page instead of dashboard
+      navigate('/login', { state: { message: 'Account created successfully! Please log in.' } });
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -65,6 +65,23 @@ export default function Register() {
               />
             </div>
             <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700 ml-1">Phone Number</label>
+              <input
+                type="tel"
+                placeholder="Enter 10-digit phone number"
+                value={form.phoneNumber}
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  if (val.length <= 10) setForm({ ...form, phoneNumber: val });
+                }}
+                pattern="[0-9]{10}"
+                title="Phone number must be exactly 10 digits"
+                maxLength="10"
+                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
               <label className="text-sm font-bold text-slate-700 ml-1">Email</label>
               <input
                 type="email"
@@ -86,7 +103,7 @@ export default function Register() {
                 required
               />
             </div>
-            
+
             <button
               type="submit"
               disabled={loading}

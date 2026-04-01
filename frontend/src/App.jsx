@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import AdminSidebar from './components/AdminSidebar';
 import LoadingScreen from './components/LoadingScreen';
@@ -12,15 +13,18 @@ import KuppiClasses from './pages/student/KuppiClasses';
 import Enrollments from './pages/student/Enrollments';
 import ResourceSharing from './pages/student/ResourceSharing';
 import StudyGroupFinder from './pages/student/StudyGroupFinder';
+import Feedback from './pages/student/Feedback';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import PostKuppiClass from './pages/admin/PostKuppiClass';
 import ManageEnrollments from './pages/admin/ManageEnrollments';
 import UploadResource from './pages/admin/UploadResource';
 import CreateStudyGroup from './pages/admin/CreateStudyGroup';
+import FeedbackReport from './pages/admin/FeedbackReport';
 
 const StudentLayout = ({ children }) => (
-  <div className="flex bg-gray-50 min-h-screen">
+  <div className="flex bg-gray-50 min-h-screen pt-20">
+    <Navbar />
     <Sidebar />
     <main className="ml-64 flex-1">{children}</main>
   </div>
@@ -64,6 +68,9 @@ function AppRoutes() {
       <Route path="/student/study-groups" element={
         <ProtectedRoute><StudentLayout><StudyGroupFinder /></StudentLayout></ProtectedRoute>
       } />
+      <Route path="/student/feedback" element={
+        <ProtectedRoute><StudentLayout><Feedback /></StudentLayout></ProtectedRoute>
+      } />
 
       {/* Admin Routes */}
       <Route path="/admin/dashboard" element={
@@ -83,6 +90,9 @@ function AppRoutes() {
       } />
       <Route path="/admin/create-study-group" element={
         <ProtectedRoute adminOnly={true}><AdminLayout><CreateStudyGroup /></AdminLayout></ProtectedRoute>
+      } />
+      <Route path="/admin/feedback-report" element={
+        <ProtectedRoute adminOnly={true}><AdminLayout><FeedbackReport /></AdminLayout></ProtectedRoute>
       } />
     </Routes>
   );

@@ -2,11 +2,12 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
-  { path: '/student/dashboard',       label: '🏠 Dashboard' },
-  { path: '/student/kuppi-classes',   label: '🎓 Kuppi Classes' },
-  { path: '/student/enrollments',    label: '📋 My Enrollments' },
+  { path: '/student/dashboard', label: '🏠 Dashboard' },
+  { path: '/student/kuppi-classes', label: '🎓 Kuppi Classes' },
+  { path: '/student/enrollments', label: '📋 My Enrollments' },
   { path: '/student/resource-sharing', label: '📚 Resource Sharing' },
-  { path: '/student/study-groups',     label: '👥 Study Group Finder' },
+  { path: '/student/study-groups', label: '👥 Study Group Finder' },
+  { path: '/student/feedback', label: '💬 Provide Feedback' },
 ];
 
 export default function Sidebar() {
@@ -19,18 +20,7 @@ export default function Sidebar() {
   };
 
   return (
-    <div className="h-screen w-64 bg-white border-r border-slate-100 text-slate-800 flex flex-col fixed left-0 top-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50">
-      {/* Logo */}
-      <div className="p-6 border-b border-slate-100">
-        <div className="flex items-center gap-2">
-          <span className="text-emerald-500 text-2xl">🎓</span>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            UNI<span className="text-emerald-500">collab</span>
-          </h1>
-        </div>
-        <p className="text-slate-400 text-sm mt-1 font-medium">Student Portal</p>
-      </div>
-
+    <div className="h-[calc(100vh-5rem)] w-64 bg-white border-r border-slate-100 text-slate-800 flex flex-col fixed left-0 top-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-40">
       {/* User Info */}
       <div className="p-4 border-b border-slate-100 bg-slate-50/50">
         <div className="flex items-center gap-3">
@@ -51,10 +41,9 @@ export default function Sidebar() {
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `block px-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                isActive
-                  ? 'bg-emerald-50 text-emerald-600 shadow-sm ring-1 ring-emerald-500/20'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-emerald-600'
+              `block px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive
+                ? 'bg-emerald-50 text-emerald-600 shadow-sm ring-1 ring-emerald-500/20'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-emerald-600'
               }`
             }
           >

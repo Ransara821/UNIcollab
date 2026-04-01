@@ -2,12 +2,13 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
-  { path: '/admin/dashboard',         label: '🏠 Dashboard' },
-  { path: '/admin/users',         label: '👥 Manage Users' },
-  { path: '/admin/post-kuppi-class',  label: '🎓 Post Kuppi Class' },
-  { path: '/admin/enrollments',   label: '📋 Enrollments' },
+  { path: '/admin/dashboard', label: '🏠 Dashboard' },
+  { path: '/admin/users', label: '👥 Manage Users' },
+  { path: '/admin/post-kuppi-class', label: '🎓 Post Kuppi Class' },
+  { path: '/admin/enrollments', label: '📋 Enrollments' },
   { path: '/admin/upload-resource', label: '📚 Upload Resource' },
-  { path: '/admin/create-study-group',   label: '👥 Manage Study Groups' },
+  { path: '/admin/create-study-group', label: '👥 Manage Study Groups' },
+  { path: '/admin/feedback-report', label: '📊 Feedback Report' },
 ];
 
 export default function AdminSidebar() {
@@ -52,10 +53,9 @@ export default function AdminSidebar() {
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `block px-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                isActive
-                  ? 'bg-orange-50 text-orange-600 shadow-sm ring-1 ring-orange-500/20'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-orange-500'
+              `block px-4 py-3 rounded-xl text-sm font-bold transition-all ${isActive
+                ? 'bg-orange-50 text-orange-600 shadow-sm ring-1 ring-orange-500/20'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-orange-500'
               }`
             }
           >
