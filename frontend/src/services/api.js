@@ -7,8 +7,11 @@ const authHeaders = () => ({ headers: { Authorization: `Bearer ${getToken()}` } 
 
 // ── Auth ──
 export const registerUser = (data) => axios.post(`${API_URL}/auth/register`, data);
-export const loginUser    = (data) => axios.post(`${API_URL}/auth/login`, data);
-export const getProfile   = ()     => axios.get(`${API_URL}/auth/profile`, authHeaders());
+export const loginUser = (data) => axios.post(`${API_URL}/auth/login`, data);
+export const getProfile = () => axios.get(`${API_URL}/auth/profile`, authHeaders());
+export const getAllUsers = () => axios.get(`${API_URL}/auth/users`, authHeaders());
+export const updateUserStatus = (id, status) => axios.put(`${API_URL}/auth/users/${id}/status`, { status }, authHeaders());
+export const deleteUser = (id) => axios.delete(`${API_URL}/auth/users/${id}`, authHeaders());
 
 // ── Kuppi Classes ──
 // Merged: Kept your functions and added the getKuppiFilterOptions from main
@@ -48,3 +51,8 @@ export const getStudySuggestions = () => axios.get(`${API_URL}/study-groups/matc
 
 // ── Study Groups: Pool ──
 export const getGrouplessPool = () => axios.get(`${API_URL}/study-groups/pool`, authHeaders());
+
+// Feedback
+export const submitFeedback = (data) => axios.post(`${API_URL}/auth/feedback`, data, authHeaders());
+export const getPublicFeedbacks = () => axios.get(`${API_URL}/auth/feedback/public`);
+export const getFeedbackReport = () => axios.get(`${API_URL}/auth/feedback/report`, authHeaders());
