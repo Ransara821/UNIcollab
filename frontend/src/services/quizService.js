@@ -1,47 +1,42 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api',
+});
 
-const getToken = () => localStorage.getItem('token');
-const authHeaders = () => ({ headers: { Authorization: `Bearer ${getToken()}` } });
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
 
-// ─── Quiz APIs ────────────────────────────────────────────
-export const getQuizzes = (year, semester) =>
-  axios.get(`${API_URL}/quizzes`, { ...authHeaders(), params: { year, semester } });
+// ── Subjects ──────────────────────────────────────
+export const getSubjects    = (params) => api.get('/subjects', { params });
+export const createSubject  = (data)   => api.post('/subjects', data);
+export const updateSubject  = (id, d)  => api.put(`/subjects/${id}`, d);
+export const deleteSubject  = (id)     => api.delete(`/subjects/${id}`);
 
-export const getQuizDetails = (id) =>
-  axios.get(`${API_URL}/quizzes/${id}`, authHeaders());
+// ── Quizzes ──────────────────────────────────────
+export const getQuizzes        = (params) => api.get('/quizzes', { params });
+export const getQuizById       = (id)     => api.get(`/quizzes/${id}`);
+export const createQuiz        = (data)   => api.post('/quizzes', data);
+export const updateQuiz        = (id, d)  => api.put(`/quizzes/${id}`, d);
+export const deleteQuiz        = (id)     => api.delete(`/quizzes/${id}`);
+export const importQuestionsFromApi = (id, data) => api.post(`/quizzes/${id}/import`, data);
 
-export const getQuizQuestions = (id) =>
-  axios.get(`${API_URL}/quizzes/${id}/questions`, authHeaders());
+// ── Questions ─────────────────────────────────────
+export const getQuestions      = (quizId) => api.get(`/quizzes/${quizId}/questions`);
+export const addQuestion       = (quizId, data) => api.post(`/quizzes/${quizId}/questions`, data);
+export const updateQuestion    = (id, data) => api.put(`/questions/${id}`, data);
+export const deleteQuestion    = (id)       => api.delete(`/questions/${id}`);
 
-export const submitQuiz = (id, payload) =>
-  axios.post(`${API_URL}/quizzes/${id}/submit`, payload, authHeaders());
+// ── Attempts ──────────────────────────────────────
+export const startAttempt      = (data) => api.post(`/attempts/start`, data);
+export const submitAttempt     = (attemptId, answers) => api.post(`/attempts/${attemptId}/submit`, { answers });
+export const getMyAttempts     = ()       => api.get('/attempts/my');
+export const getAllAttempts    = ()       => api.get('/attempts/all');
 
-export const getQuizResult = (attemptId) =>
-  axios.get(`${API_URL}/quizzes/result/${attemptId}`, authHeaders());
+// ── Leaderboard ───────────────────────────────────
+export const getLeaderboard    = (params) => api.get('/leaderboard', { params });
 
-export const getQuizLeaderboard = (id) =>
-  axios.get(`${API_URL}/quizzes/${id}/leaderboard`, authHeaders());
-
-export const getGlobalLeaderboard = (year, semester) =>
-  axios.get(`${API_URL}/quizzes/leaderboard`, {
-    ...authHeaders(),
-    params: { year, semester },
-  });
-
-// ─── Admin Quiz APIs ──────────────────────────────────────
-export const createQuiz = (data) =>
-  axios.post(`${API_URL}/quizzes`, data, authHeaders());
-
-export const updateQuiz = (id, data) =>
-  axios.put(`${API_URL}/quizzes/${id}`, data, authHeaders());
-
-export const deleteQuiz = (id) =>
-  axios.delete(`${API_URL}/quizzes/${id}`, authHeaders());
-
-export const getAdminAllQuizzes = () =>
-  axios.get(`${API_URL}/quizzes?adminView=true`, authHeaders());
-
-export const getAdminAttempts = (id) =>
-  axios.get(`${API_URL}/quizzes/admin/${id}/attempts`, authHeaders());
+export default api;

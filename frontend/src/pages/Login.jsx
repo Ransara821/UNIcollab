@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { loginUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, AlertCircle, BookMarked, ArrowRight } from 'lucide-react';
+import { Mail, Lock, AlertCircle, BookMarked, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -27,109 +27,107 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: '#0F172A' }}>
-      {/* Left Panel */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden">
-        <div className="absolute inset-0 -z-0"
-          style={{ background: 'linear-gradient(135deg, #4F46E5 0%, #06B6D4 100%)', opacity: 0.12 }} />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full -z-0"
-          style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.3) 0%, transparent 70%)' }} />
+    <div className="min-h-screen flex font-sans text-slate-800 bg-white selection:bg-emerald-100 selection:text-emerald-900">
+      {/* Left Panel - Light Mode Theme */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden bg-slate-50">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-100/40 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 -z-0 mix-blend-multiply" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-teal-50/60 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 -z-0 mix-blend-multiply" />
 
         <div className="flex items-center gap-3 relative z-10">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #4F46E5, #06B6D4)' }}>
-            <BookMarked size={18} color="white" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/20">
+            <BookMarked size={20} color="white" />
           </div>
-          <span className="text-2xl font-bold text-white tracking-tight">
-            UNI<span style={{ color: '#06B6D4' }}>collab</span>
+          <span className="text-2xl font-black text-slate-900 tracking-tight">
+            UNI<span className="text-emerald-500">collab</span>
           </span>
         </div>
 
-        <div className="relative z-10">
-          <h1 className="text-4xl font-bold text-white mb-4 leading-tight">
-            Your academic<br />
-            <span style={{ color: '#06B6D4' }}>journey continues.</span>
+        <div className="relative z-10 max-w-lg">
+          <h1 className="text-5xl font-black text-slate-900 mb-6 leading-[1.15] tracking-tight">
+            Welcome back to your <br />
+            <span className="text-emerald-500">learning hub.</span>
           </h1>
-          <p className="text-slate-400 text-lg leading-relaxed">
-            Access kuppi classes, study materials, group sessions, and more — all in one platform.
+          <p className="text-slate-500 text-lg leading-relaxed font-medium mb-12">
+            Access kuppi classes, study materials, group sessions, and more — all in one unified platform.
           </p>
-          <div className="mt-8 grid grid-cols-2 gap-4">
-            {[['200+', 'Active Students'], ['50+', 'Modules'], ['100+', 'Kuppi Classes'], ['4', 'Academic Years']].map(([val, lbl]) => (
-              <div key={lbl} className="p-4 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <div className="text-2xl font-bold text-white">{val}</div>
-                <div className="text-sm text-slate-400 mt-1">{lbl}</div>
+          
+          <div className="space-y-4">
+            {['Connect with top student tutors', 'Access curated past papers', 'Join faculty study groups'].map((item) => (
+              <div key={item} className="flex items-center gap-3 bg-white pr-6 pl-2 py-2 rounded-full border border-slate-100 w-fit font-bold text-sm text-slate-700 shadow-sm">
+                <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500">
+                  <CheckCircle2 size={16} />
+                </div>
+                {item}
               </div>
             ))}
           </div>
         </div>
 
-        <p className="text-slate-600 text-sm relative z-10">© 2026 UNIcollab. All rights reserved.</p>
+        <p className="text-slate-400 font-medium text-sm relative z-10">© {new Date().getFullYear()} UNIcollab. All rights reserved.</p>
       </div>
 
       {/* Right Panel - Form */}
-      <div className="flex-1 flex flex-col justify-center items-center px-6 py-12">
+      <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 bg-white relative">
         {/* Mobile Logo */}
-        <div className="lg:hidden flex items-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #4F46E5, #06B6D4)' }}>
-            <BookMarked size={16} color="white" />
+        <div className="lg:hidden flex items-center gap-3 mb-12">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-400 shadow-md shadow-emerald-500/20">
+            <BookMarked size={20} color="white" />
           </div>
-          <span className="text-xl font-bold text-white">UNI<span style={{ color: '#06B6D4' }}>collab</span></span>
+          <span className="text-2xl font-black text-slate-900 tracking-tight">
+            UNI<span className="text-emerald-500">collab</span>
+          </span>
         </div>
 
-        <div className="w-full max-w-md animate-slide-up">
-          <div className="p-8 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-1">Welcome back</h2>
-              <p className="text-slate-400">Sign in to your account to continue</p>
+        <div className="w-full max-w-md animate-in slide-in-from-bottom-4 duration-500 relative z-10">
+          <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-900/5">
+            <div className="mb-8 items-center text-center">
+              <h2 className="text-3xl font-black text-slate-900 mb-2">Sign in</h2>
+              <p className="text-slate-500 font-medium">Please enter your credentials</p>
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-xl mb-6 text-sm"
-                style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' }}>
-                <AlertCircle size={16} />
+              <div className="flex items-center gap-3 p-4 rounded-xl mb-6 text-sm font-bold bg-red-50 border border-red-100 text-red-600">
+                <AlertCircle size={18} className="shrink-0" />
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#94A3B8' }}>Email Address</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Email Address</label>
                 <div className="relative">
-                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#475569' }} />
+                  <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                    placeholder="name@university.edu" required
-                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-slate-600 outline-none transition-all"
-                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-                    onFocus={e => { e.target.style.borderColor = '#4F46E5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.15)'; }}
-                    onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none'; }} />
+                    placeholder="Enter your email" required
+                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-slate-800 placeholder-slate-400 bg-slate-50 border border-slate-200 outline-none transition-all focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold"
+                  />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#94A3B8' }}>Password</label>
+                <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Password</label>
                 <div className="relative">
-                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#475569' }} />
+                  <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })}
                     placeholder="Enter your password" required
-                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-slate-600 outline-none transition-all"
-                    style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)' }}
-                    onFocus={e => { e.target.style.borderColor = '#4F46E5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.15)'; }}
-                    onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none'; }} />
+                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-slate-800 placeholder-slate-400 bg-slate-50 border border-slate-200 outline-none transition-all focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold"
+                  />
                 </div>
               </div>
 
-              <button type="submit" disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white transition-all mt-2 disabled:opacity-50"
-                style={{ background: 'linear-gradient(135deg, #4F46E5, #06B6D4)' }}>
-                {loading ? 'Signing in...' : <><span>Sign In</span><ArrowRight size={16} /></>}
-              </button>
+              <div className="pt-4">
+                <button type="submit" disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-white transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:active:scale-100 disabled:hover:translate-y-0 shadow-lg shadow-emerald-500/25"
+                  style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
+                  {loading ? 'Signing in...' : <><span>Sign in</span><ArrowRight size={18} /></>}
+                </button>
+              </div>
             </form>
 
-            <p className="text-center mt-6 text-sm" style={{ color: '#64748B' }}>
+            <p className="text-center mt-8 text-sm font-medium text-slate-500">
               Don't have an account?{' '}
-              <Link to="/register" className="font-semibold hover:text-indigo-400 transition-colors" style={{ color: '#818CF8' }}>
-                Create one
+              <Link to="/register" className="font-bold text-emerald-600 hover:text-emerald-500 transition-colors">
+                Sign up
               </Link>
             </p>
           </div>

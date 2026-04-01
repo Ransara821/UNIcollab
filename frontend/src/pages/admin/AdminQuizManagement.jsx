@@ -1,275 +1,202 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getQuizzes, createQuiz, updateQuiz, deleteQuiz, getSubjects } from '../../services/quizService';
 import {
-  getAdminAllQuizzes, createQuiz, updateQuiz, deleteQuiz, getAdminAttempts,
-} from '../../services/quizService';
-import {
-  Plus, Pencil, Trash2, BarChart2, X, Check, AlertCircle, BrainCircuit
+  PlusCircle, Pencil, Trash2, Eye, EyeOff, HelpCircle,
+  BookOpen, GraduationCap, Clock, FileWarning, Search, X, Type, AlignLeft, Building, Target, Zap
 } from 'lucide-react';
 
-const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+const BLANK = { title: '', description: '', subjectId: '', year: '1st Year', semester: 'Semester 1', difficulty: 'medium', timeLimit: 30, passMark: 50, attemptsAllowed: 1 };
+const YEARS     = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 const SEMESTERS = ['Semester 1', 'Semester 2'];
-const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
-const CATEGORIES = ['Linux', 'DevOps', 'Networking', 'Programming', 'Cloud', 'Docker', 'Kubernetes', 'Code', 'SQL', 'CMS', 'Bash'];
+const DIFFICULTIES = ['easy', 'medium', 'hard'];
 
-const defaultForm = { title: '', description: '', year: '1st Year', semester: 'Semester 1', category: 'Linux', difficulty: 'Medium', tags: '', questionCount: 10, isActive: true };
-
-const diffBadge = { Easy: { bg: '#DCFCE7', color: '#16A34A' }, Medium: { bg: '#FEF9C3', color: '#CA8A04' }, Hard: { bg: '#FEE2E2', color: '#DC2626' } };
-
-const inputCls = "w-full px-3 py-2.5 rounded-xl text-sm border border-slate-200 bg-slate-50 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all";
-const selectCls = "w-full px-3 py-2.5 rounded-xl text-sm border border-slate-200 bg-slate-50 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-all";
-
-export default function AdminQuizManagement() {
-  const [quizzes, setQuizzes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState(defaultForm);
+function QuizFormModal({ quiz, subjects, onClose, onSaved }) {
+  const [form, setForm] = useState(quiz ? { ...quiz, subjectId: quiz.subjectId?._id || quiz.subjectId } : { ...BLANK });
   const [saving, setSaving] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [viewAttempts, setViewAttempts] = useState(null);
-  const [attempts, setAttempts] = useState([]);
-  const [toast, setToast] = useState(null);
+  const [err, setErr] = useState('');
 
-  const fetchQuizzes = async () => { try { const res = await getAdminAllQuizzes(); setQuizzes(res.data.data); } catch {} finally { setLoading(false); } };
-  useEffect(() => { fetchQuizzes(); }, []);
+  const setObj = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
-  const flash = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
-
-  const handleEdit = (quiz) => { setEditingId(quiz._id); setForm({ ...quiz, tags: (quiz.tags || []).join(', ') }); setShowForm(true); };
-
-  const handleDelete = async (id) => {
-    try { await deleteQuiz(id); flash('Quiz deleted.'); setDeleteConfirm(null); fetchQuizzes(); }
-    catch { flash('Failed to delete.', 'error'); }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault(); setSaving(true);
+  const handle = async (e) => {
+    e.preventDefault();
+    if(!form.subjectId) return setErr('Please specify a curriculum Subject to bind this quiz.');
+    setSaving(true); setErr('');
     try {
-      const payload = { ...form, tags: form.tags.split(',').map(t => t.trim()).filter(Boolean) };
-      if (editingId) { await updateQuiz(editingId, payload); flash('Quiz updated!'); }
-      else { await createQuiz(payload); flash('Quiz created!'); }
-      setShowForm(false); setEditingId(null); setForm(defaultForm); fetchQuizzes();
-    } catch (err) { flash(err.response?.data?.message || 'Failed to save.', 'error'); }
+      if (quiz) await updateQuiz(quiz._id, form);
+      else      await createQuiz(form);
+      onSaved();
+    } catch (ex) { setErr(ex.response?.data?.message || 'Server rejected payload boundaries.'); }
     finally { setSaving(false); }
   };
 
-  const handleViewAttempts = async (quiz) => { setViewAttempts(quiz); try { const res = await getAdminAttempts(quiz._id); setAttempts(res.data.data); } catch { setAttempts([]); } };
+  return (
+    <div className="fixed inset-0 z-[100] flex justify-center items-center p-4 sm:p-6 bg-slate-900/80 backdrop-blur-md animate-fade-in">
+      <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-6xl relative max-h-[95vh] overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col">
+        <div className="bg-gradient-to-r from-slate-900 to-indigo-900 px-6 py-4 rounded-t-[2rem] text-white flex justify-between items-center shrink-0 shadow-md">
+          <div>
+            <h2 className="text-xl font-black tracking-tight">{quiz ? 'Reconfigure Assessment' : 'Construct New Assessment'}</h2>
+            <p className="text-indigo-200 text-xs font-medium mt-0.5">Define core parameters and grading limits.</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors shadow-inner"><X size={16}/></button>
+        </div>
+        
+        <form onSubmit={handle} className="p-6 md:p-8 flex-1 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="md:col-span-4 space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><Type size={12} className="text-indigo-500"/> Title</label>
+              <input required value={form.title} onChange={e=>setObj('title', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-400 focus:shadow-sm font-bold text-slate-800 transition-all text-sm" placeholder="e.g. Midterm Evaluation..." />
+            </div>
+            
+            <div className="md:col-span-4 space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><AlignLeft size={12} className="text-indigo-500"/> Context / Protocol Description</label>
+              <textarea required value={form.description} onChange={e=>setObj('description', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-400 focus:shadow-sm font-medium text-slate-600 transition-all h-20 resize-none text-sm" placeholder="Provide clear instructions for students..." />
+            </div>
 
-  const closeForm = () => { setShowForm(false); setEditingId(null); setForm(defaultForm); };
+            <div className="md:col-span-2 space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><BookOpen size={12} className="text-indigo-500"/> Subject Module</label>
+              <select required value={form.subjectId} onChange={e=>setObj('subjectId', e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-400 focus:shadow-sm font-bold text-slate-800 transition-all text-sm appearance-none cursor-pointer">
+                <option value="" disabled>--- Select Course Module ---</option>
+                {subjects.map(s => <option key={s._id} value={s._id}>{s.code} - {s.name}</option>)}
+              </select>
+            </div>
+            
+            <div className="md:col-span-1 space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><Zap size={12} className="text-indigo-500"/> Difficulty</label>
+              <select value={form.difficulty} onChange={e=>setObj('difficulty', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-400 transition-all font-bold text-slate-800 text-sm capitalize cursor-pointer appearance-none">
+                {DIFFICULTIES.map(d=><option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
+
+            <div className="md:col-span-1 space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><GraduationCap size={12} className="text-indigo-500"/> Year</label>
+              <select value={form.year} onChange={e=>setObj('year', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-400 transition-all font-bold text-slate-800 text-sm cursor-pointer appearance-none">
+                {YEARS.map(y=><option key={y}>{y}</option>)}
+              </select>
+            </div>
+            
+            <div className="md:col-span-1 space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><Building size={12} className="text-indigo-500"/> Semester</label>
+              <select value={form.semester} onChange={e=>setObj('semester', e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-400 transition-all font-bold text-slate-800 text-sm cursor-pointer appearance-none">
+                {SEMESTERS.map(s=><option key={s}>{s}</option>)}
+              </select>
+            </div>
+
+            <div className="md:col-span-1 space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><Clock size={12} className="text-indigo-500"/> Time Limit (Mins)</label>
+              <input type="number" min={1} required value={form.timeLimit} onChange={e=>setObj('timeLimit', +e.target.value)} className="w-full bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 font-extrabold text-indigo-900 transition-all text-sm shadow-inner" />
+            </div>
+            
+            <div className="md:col-span-1 space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><Target size={12} className="text-indigo-500"/> Pass Mark</label>
+              <input type="number" min={0} required value={form.passMark} onChange={e=>setObj('passMark', +e.target.value)} className="w-full bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-2.5 outline-none focus:bg-white focus:border-indigo-500 font-extrabold text-indigo-900 transition-all text-sm shadow-inner" />
+            </div>
+            
+            <div className="md:col-span-1 space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1.5"><FileWarning size={12} className="text-indigo-500"/> Max Retries</label>
+              <input type="number" min={1} max={10} required value={form.attemptsAllowed} onChange={e=>setObj('attemptsAllowed', +e.target.value)} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 outline-none focus:border-indigo-500 font-extrabold text-slate-800 transition-all text-sm shadow-sm" />
+            </div>
+          </div>
+          
+          {err && <div className="text-red-500 text-xs mt-4 font-bold bg-red-50 p-3 rounded-xl border-l-4 border-l-red-500 shadow-sm animate-pulse">{err}</div>}
+          
+          <div className="flex gap-4 pt-6 mt-6 border-t border-slate-100">
+            <button type="button" onClick={onClose} className="px-6 py-3 rounded-xl border border-slate-200 font-black text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors text-sm">Cancel</button>
+            <button disabled={saving} className="flex-1 py-3 rounded-xl font-black text-white shadow-xl shadow-indigo-600/30 hover:-translate-y-0.5 transition-all disabled:opacity-50 text-sm flex items-center justify-center gap-2" style={{ background: 'linear-gradient(135deg,#1E293B,#0F172A)' }}>
+              {saving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : 'Confirm Operational Details'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminQuizManagement() {
+  const navigate = useNavigate();
+  const [quizzes, setQuizzes] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState(null); 
+  
+  const load = async () => {
+    setLoading(true);
+    try {
+      const [qRes, sRes] = await Promise.all([ getQuizzes(), getSubjects() ]);
+      setQuizzes(qRes.data.data);
+      setSubjects(sRes.data.data);
+    } catch {} finally { setLoading(false); }
+  };
+  useEffect(() => { load(); }, []);
+
+  const handleDelete = async (id) => {
+    if(!window.confirm("Delete this quiz entirely?")) return;
+    try { await deleteQuiz(id); load(); } catch {}
+  };
+
+  const handleToggle = async (quiz) => {
+    try {
+      if(quiz.status === 'draft' && quiz.questionCount === 0) return alert("Must add questions to publish.");
+      await updateQuiz(quiz._id, { status: quiz.status === 'published' ? 'draft' : 'published' });
+      load();
+    } catch (e) { alert('Update failed'); }
+  };
 
   return (
-    <div className="p-8 max-w-6xl animate-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold shadow-lg animate-slide-up"
-          style={toast.type === 'success' ? { background: '#F0FDF4', border: '1px solid #BBF7D0', color: '#16A34A' } : { background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626' }}>
-          {toast.type === 'success' ? <Check size={16} /> : <AlertCircle size={16} />} {toast.msg}
-        </div>
-      )}
-
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="p-8 max-w-7xl mx-auto animate-fade-in">
+      <div className="flex items-center justify-between mb-8 bg-white p-6 rounded-3xl border border-slate-200/60 shadow-sm">
         <div>
-          <p className="text-sm font-semibold mb-1" style={{ color: '#7C3AED' }}>Admin Panel</p>
-          <h1 className="text-3xl font-bold text-slate-900">Quiz Management</h1>
-          <p className="text-slate-500 mt-1">{quizzes.length} quiz{quizzes.length !== 1 ? 'zes' : ''} configured</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Quiz Control Center</h1>
+          <p className="text-sm font-medium mt-1 text-slate-500">Manage all internal LMS assessments and imported tests</p>
         </div>
-        <button onClick={() => { setShowForm(true); setEditingId(null); setForm(defaultForm); }}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-white text-sm transition-all hover:-translate-y-0.5"
-          style={{ background: 'linear-gradient(135deg, #7C3AED, #4F46E5)' }}>
-          <Plus size={18} /> Create Quiz
-        </button>
+        <button onClick={() => setModal('create')} className="flex items-center gap-2 bg-slate-900 text-white px-6 py-3.5 rounded-2xl font-bold hover:bg-indigo-600 shadow-md transition-all"><PlusCircle size={18}/> New Assessment</button>
       </div>
 
-      {/* Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto animate-slide-up">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <BrainCircuit size={20} style={{ color: '#7C3AED' }} />
-                <h2 className="text-lg font-bold text-slate-900">{editingId ? 'Edit Quiz' : 'Create Quiz'}</h2>
+      {loading ? <div className="text-indigo-500 text-center py-20 font-bold text-lg animate-pulse">Synchronizing Quizzes...</div> : 
+      <div className="grid gap-5">
+        {quizzes.length === 0 && <div className="text-center py-16 text-slate-500 bg-white rounded-3xl border border-slate-200/60 shadow-sm"><span className="bg-slate-100 p-4 rounded-full inline-block mb-3"><BookOpen size={24} className="text-indigo-400"/></span><p className="font-semibold text-lg">No Assessments Built</p></div>}
+        {quizzes.map(quiz => (
+          <div key={quiz._id} className="bg-white border border-slate-200/60 rounded-3xl p-6 hover:shadow-xl hover:border-indigo-100 transition-all flex flex-col xl:flex-row gap-6 justify-between items-start xl:items-center relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            
+            <div className="flex-1 pl-2">
+              <div className="flex items-center gap-3 mb-2.5">
+                <h3 className="font-extrabold text-xl text-slate-900">{quiz.title}</h3>
+                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold tracking-wide ${quiz.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {quiz.status.toUpperCase()}
+                </span>
+                <span className={`px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 uppercase`}>
+                  {quiz.difficulty}
+                </span>
+                {quiz.importedFrom === 'quizapi' && <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-100 text-purple-700 uppercase">QUIZAPI.IO</span>}
               </div>
-              <button onClick={closeForm} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-all">
-                <X size={18} style={{ color: '#64748B' }} />
+              <p className="text-slate-500 text-sm mb-5 font-medium pr-10">{quiz.description}</p>
+              
+              <div className="flex flex-wrap items-center gap-4 text-sm font-semibold text-indigo-900/60 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50">
+                <span className="flex items-center gap-1.5"><BookOpen size={15} className="text-indigo-500"/> {quiz.subjectId?.name || 'Unassigned'}</span>
+                <span className="text-indigo-200">|</span>
+                <span className="flex items-center gap-1.5"><GraduationCap size={15} className="text-indigo-500"/> {quiz.year} - {quiz.semester}</span>
+                <span className="text-indigo-200">|</span>
+                <span className="flex items-center gap-1.5"><Clock size={15} className="text-indigo-500"/> {quiz.timeLimit} mins</span>
+                <span className="text-indigo-200">|</span>
+                <span className="flex items-center gap-1.5"><HelpCircle size={15} className="text-indigo-500"/> {quiz.questionCount} Questions</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0 bg-slate-50 p-2 rounded-2xl w-full xl:w-auto">
+              <button onClick={() => navigate(`/admin/quiz-management/${quiz._id}/questions`)} className="px-5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:border-indigo-400 hover:text-indigo-600 flex items-center gap-2 transition-all shadow-sm"><FileWarning size={16}/> Build</button>
+              <button onClick={() => handleToggle(quiz)} className={`px-5 py-2.5 bg-white border rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm ${quiz.status === 'published' ? 'text-amber-600 border-amber-200 hover:bg-amber-50' : 'text-emerald-600 border-emerald-200 hover:bg-emerald-50'}`}>
+                {quiz.status === 'published' ? <><EyeOff size={16}/> Unpublish</> : <><Eye size={16}/> Publish</>}
               </button>
-            </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Title</label>
-                <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required className={inputCls} placeholder="e.g. Linux Fundamentals Quiz" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Description</label>
-                <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} required rows={2} className={`${inputCls} resize-none`} placeholder="Brief quiz description…" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Year</label>
-                  <select value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} className={selectCls}>{YEARS.map(y => <option key={y}>{y}</option>)}</select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Semester</label>
-                  <select value={form.semester} onChange={e => setForm(f => ({ ...f, semester: e.target.value }))} className={selectCls}>{SEMESTERS.map(s => <option key={s}>{s}</option>)}</select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Category</label>
-                  <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className={selectCls}>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Difficulty</label>
-                  <select value={form.difficulty} onChange={e => setForm(f => ({ ...f, difficulty: e.target.value }))} className={selectCls}>{DIFFICULTIES.map(d => <option key={d}>{d}</option>)}</select>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Tags (comma-separated)</label>
-                  <input value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} className={inputCls} placeholder="bash, shell, linux" />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">Question Count</label>
-                  <input type="number" min={1} max={50} value={form.questionCount} onChange={e => setForm(f => ({ ...f, questionCount: Number(e.target.value) }))} className={inputCls} />
-                </div>
-              </div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))} className="w-4 h-4 accent-indigo-600" />
-                <span className="text-sm font-medium text-slate-700">Active (visible to students)</span>
-              </label>
-              <div className="flex gap-3 pt-2">
-                <button type="submit" disabled={saving}
-                  className="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-50"
-                  style={{ background: 'linear-gradient(135deg, #7C3AED, #4F46E5)' }}>
-                  {saving ? 'Saving…' : editingId ? 'Update Quiz' : 'Create Quiz'}
-                </button>
-                <button type="button" onClick={closeForm} className="px-5 py-2.5 rounded-xl font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 text-sm transition-all">Cancel</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Modal */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }}>
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full animate-slide-up">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 mx-auto" style={{ background: '#FEF2F2' }}>
-              <Trash2 size={22} style={{ color: '#DC2626' }} />
-            </div>
-            <h3 className="text-lg font-bold text-slate-900 text-center mb-2">Delete Quiz?</h3>
-            <p className="text-sm text-slate-500 text-center mb-6">This will permanently delete <strong>"{deleteConfirm.title}"</strong> and all its attempts.</p>
-            <div className="flex gap-3">
-              <button onClick={() => handleDelete(deleteConfirm._id)} className="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm" style={{ background: '#DC2626' }}>Delete</button>
-              <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-2.5 rounded-xl font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 text-sm transition-all">Cancel</button>
+              <button onClick={() => setModal(quiz)} className="w-11 h-11 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:text-indigo-600 hover:border-indigo-300 transition-all shadow-sm"><Pencil size={17}/></button>
+              <button onClick={() => handleDelete(quiz._id)} className="w-11 h-11 border border-red-200 bg-red-50 text-red-500 rounded-xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={17}/></button>
             </div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
+      }
 
-      {/* Attempts Modal */}
-      {viewAttempts && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[80vh] overflow-y-auto animate-slide-up">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <div>
-                <h3 className="font-bold text-slate-900">Attempts</h3>
-                <p className="text-xs text-slate-400 mt-0.5">{viewAttempts.title}</p>
-              </div>
-              <button onClick={() => setViewAttempts(null)} className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 transition-all"><X size={18} style={{ color: '#64748B' }} /></button>
-            </div>
-            <div className="p-4">
-              {attempts.length === 0 ? (
-                <p className="text-center text-slate-400 py-8 text-sm">No attempts yet.</p>
-              ) : (
-                <table className="w-full text-sm">
-                  <thead><tr className="text-left text-xs text-slate-400 border-b border-slate-100">
-                    <th className="pb-2 font-semibold">User</th>
-                    <th className="pb-2 font-semibold text-center">Score</th>
-                    <th className="pb-2 font-semibold text-center">%</th>
-                    <th className="pb-2 font-semibold text-right">Date</th>
-                  </tr></thead>
-                  <tbody>
-                    {attempts.map((a, i) => (
-                      <tr key={i} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                        <td className="py-2.5 text-slate-700 font-medium truncate max-w-[140px]">{a.userId}</td>
-                        <td className="py-2.5 text-center font-bold text-indigo-600">{a.score}/{a.totalQuestions}</td>
-                        <td className="py-2.5 text-center text-slate-600">{Math.round(a.percentage)}%</td>
-                        <td className="py-2.5 text-right text-slate-400 text-xs">{new Date(a.submittedAt).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Table */}
-      {loading ? (
-        <div className="flex justify-center py-20"><div className="w-10 h-10 border-[3px] rounded-full animate-spin" style={{ borderColor: '#EEF2FF', borderTopColor: '#7C3AED' }} /></div>
-      ) : quizzes.length === 0 ? (
-        <div className="text-center py-24 bg-white rounded-2xl border border-slate-200/60">
-          <BrainCircuit size={48} className="mx-auto mb-4" style={{ color: '#CBD5E1' }} />
-          <h3 className="text-lg font-semibold text-slate-700 mb-2">No quizzes yet</h3>
-          <p className="text-slate-400 text-sm">Create your first quiz to get started.</p>
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden shadow-sm">
-          <table className="w-full text-sm">
-            <thead className="border-b border-slate-100" style={{ background: '#F8FAFC' }}>
-              <tr>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Quiz</th>
-                <th className="text-center px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Year / Sem</th>
-                <th className="text-center px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Level</th>
-                <th className="text-center px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Qns</th>
-                <th className="text-center px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Status</th>
-                <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {quizzes.map((quiz) => {
-                const d = diffBadge[quiz.difficulty] || { bg: '#F1F5F9', color: '#64748B' };
-                return (
-                  <tr key={quiz._id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                    <td className="px-5 py-4">
-                      <p className="font-semibold text-slate-900">{quiz.title}</p>
-                      <p className="text-xs text-slate-400 mt-0.5">{quiz.category}</p>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <p className="text-slate-700 text-xs font-medium">{quiz.year}</p>
-                      <p className="text-slate-400 text-xs">{quiz.semester}</p>
-                    </td>
-                    <td className="px-4 py-4 text-center">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: d.bg, color: d.color }}>{quiz.difficulty}</span>
-                    </td>
-                    <td className="px-4 py-4 text-center font-semibold text-slate-700">{quiz.questionCount}</td>
-                    <td className="px-4 py-4 text-center">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
-                        style={quiz.isActive ? { background: '#EEF2FF', color: '#4F46E5' } : { background: '#F8FAFC', color: '#94A3B8' }}>
-                        {quiz.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button onClick={() => handleViewAttempts(quiz)} title="View Attempts"
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-indigo-50 transition-all" style={{ color: '#4F46E5' }}>
-                          <BarChart2 size={15} />
-                        </button>
-                        <button onClick={() => handleEdit(quiz)} title="Edit"
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-amber-50 transition-all" style={{ color: '#D97706' }}>
-                          <Pencil size={15} />
-                        </button>
-                        <button onClick={() => setDeleteConfirm(quiz)} title="Delete"
-                          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 transition-all" style={{ color: '#DC2626' }}>
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {modal && <QuizFormModal quiz={modal === 'create' ? null : modal} subjects={subjects} onClose={()=>setModal(null)} onSaved={()=>{setModal(null); load();}} />}
     </div>
   );
 }

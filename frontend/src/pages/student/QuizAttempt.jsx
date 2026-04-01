@@ -1,174 +1,173 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getQuizDetails, getQuizQuestions, submitQuiz } from '../../services/quizService';
-import { Clock, ChevronLeft, ChevronRight, Send, BookMarked, AlertCircle } from 'lucide-react';
+import { getQuizById, getQuestions, getMyAttempts, submitAttempt } from '../../services/quizService';
+import { Clock, ShieldAlert, CheckCircle, ChevronRight, ChevronLeft, Flag, Send } from 'lucide-react';
 
 export default function QuizAttempt() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [quiz, setQuiz] = useState(null);
   const [questions, setQuestions] = useState([]);
+  const [attempt, setAttempt] = useState(null);
   const [answers, setAnswers] = useState({});
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [startTime] = useState(Date.now());
-  const [timer, setTimer] = useState(0);
 
-  useEffect(() => {
-    const interval = setInterval(() => setTimer(t => t + 1), 1000);
-    return () => clearInterval(interval);
-  }, []);
+  const loadData = async () => {
+    try {
+      const [qRes, qsRes, aRes] = await Promise.all([getQuizById(id), getQuestions(id), getMyAttempts()]);
+      const quizData = qRes.data.data;
+      const atts = aRes.data.data;
+      const active = atts.find(a => (a.quizId?._id === id || a.quizId === id) && a.status === 'in-progress');
+      
+      if (!active) {
+        alert("No active attempt found. Start the quiz properly.");
+        return navigate(`/student/quizzes/${id}/details`);
+      }
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [quizRes, questionsRes] = await Promise.all([getQuizDetails(id), getQuizQuestions(id)]);
-        setQuiz(quizRes.data.data);
-        setQuestions(questionsRes.data.data);
-      } catch { setError('Failed to load quiz. Please try again.'); }
-      finally { setLoading(false); }
-    };
-    load();
-  }, [id]);
+      setQuiz(quizData);
+      setQuestions(qsRes.data.data);
+      setAttempt(active);
 
-  const handleSelect = (answerKey) => setAnswers(prev => ({ ...prev, [currentIndex]: answerKey }));
+      const elapsedSec = Math.floor((Date.now() - new Date(active.startedAt).getTime()) / 1000);
+      const remainingSec = (quizData.timeLimit * 60) - elapsedSec;
+      setTimeLeft(remainingSec > 0 ? remainingSec : 0);
+    } catch (err) { } finally { setLoading(false); }
+  };
+
+  useEffect(() => { loadData(); }, [id]);
 
   const handleSubmit = useCallback(async () => {
     if (submitting) return;
     setSubmitting(true);
     try {
-      const duration = Math.floor((Date.now() - startTime) / 1000);
-      const formattedAnswers = questions.map((_, i) => answers[i] || null);
-      const res = await submitQuiz(id, { answers: formattedAnswers, questions, duration });
-      navigate(`/student/quizzes/result/${res.data.data.attemptId}`);
-    } catch { setError('Failed to submit. Please try again.'); setSubmitting(false); }
-  }, [id, answers, questions, startTime, navigate, submitting]);
+      const payload = Object.entries(answers).map(([questionId, selectedAnswer]) => ({ questionId, selectedAnswer }));
+      const res = await submitAttempt(attempt._id, payload);
+      navigate(`/student/quizzes/result/${res.data.data._id}`, { replace: true });
+    } catch (err) {
+      alert("Submission Error: " + (err.response?.data?.message || err.message));
+      setSubmitting(false);
+    }
+  }, [answers, attempt, submitting, navigate]);
 
-  const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  useEffect(() => {
+    if (timeLeft === null || submitting) return;
+    if (timeLeft <= 0) {
+      handleSubmit(); 
+      return;
+    }
+    const timerId = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    return () => clearInterval(timerId);
+  }, [timeLeft, submitting, handleSubmit]);
 
-  const optionKeys = ['a', 'b', 'c', 'd', 'e', 'f'];
+  const selectAnswer = (qId, optionKey) => {
+    setAnswers(prev => ({ ...prev, [qId]: optionKey }));
+  };
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen" style={{ background: '#F8FAFC' }}>
-      <div className="text-center">
-        <div className="w-10 h-10 border-[3px] rounded-full animate-spin mx-auto mb-3" style={{ borderColor: '#EEF2FF', borderTopColor: '#4F46E5' }} />
-        <p className="text-slate-500 text-sm">Loading quiz…</p>
-      </div>
-    </div>
-  );
+  const currentQ = questions[currentIdx];
 
-  if (error) return (
-    <div className="flex items-center justify-center min-h-screen" style={{ background: '#F8FAFC' }}>
-      <div className="text-center p-8 rounded-2xl border border-red-200 bg-red-50">
-        <AlertCircle size={36} className="mx-auto mb-3" style={{ color: '#DC2626' }} />
-        <p className="font-semibold text-red-700 mb-4">{error}</p>
-        <button onClick={() => navigate(-1)} className="px-5 py-2 rounded-xl text-sm font-semibold text-white"
-          style={{ background: '#DC2626' }}>Go Back</button>
-      </div>
-    </div>
-  );
+  const formatTime = (secs) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  };
 
-  const currentQ = questions[currentIndex];
-  const answeredCount = Object.keys(answers).length;
-  const progress = ((currentIndex + 1) / questions.length) * 100;
+  if (loading) return <div className="p-20 text-center animate-pulse text-indigo-500 font-bold text-xl">Securing execution environment...</div>;
+  if (!quiz || !attempt) return null;
 
-  const options = currentQ
-    ? Object.entries(currentQ.answers || {}).filter(([, v]) => v !== null).map(([key, val]) => ({ rawKey: key, key: key.replace('answer_', ''), label: val }))
-    : [];
+  const isWarning = timeLeft < 60; 
 
   return (
-    <div className="min-h-screen p-4 sm:p-8 animate-fade-in" style={{ background: '#F8FAFC' }}>
-      <div className="max-w-2xl mx-auto">
-        {/* Top Bar */}
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-4 mb-5 flex items-center justify-between shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #4F46E5, #06B6D4)' }}>
-              <BookMarked size={16} color="white" />
-            </div>
-            <div>
-              <p className="font-semibold text-slate-900 text-sm">{quiz?.title}</p>
-              <p className="text-xs text-slate-400">{quiz?.year} · {quiz?.semester}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1.5 font-mono font-semibold text-sm px-3 py-1.5 rounded-lg"
-              style={{ background: '#EEF2FF', color: '#4F46E5' }}>
-              <Clock size={14} /> {fmt(timer)}
-            </span>
-            <span className="text-xs text-slate-400">{answeredCount}/{questions.length} answered</span>
-          </div>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="h-1.5 rounded-full mb-5 overflow-hidden" style={{ background: '#E2E8F0' }}>
-          <div className="h-full rounded-full transition-all duration-300" style={{ width: `${progress}%`, background: 'linear-gradient(90deg, #4F46E5, #06B6D4)' }} />
-        </div>
-
-        {/* Question Card */}
-        {currentQ && (
-          <div className="bg-white rounded-2xl border border-slate-200/60 p-6 shadow-sm mb-5">
-            <div className="flex items-start gap-4 mb-6">
-              <span className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0"
-                style={{ background: 'linear-gradient(135deg, #4F46E5, #06B6D4)' }}>{currentIndex + 1}</span>
-              <p className="font-medium text-slate-800 leading-relaxed">{currentQ.question}</p>
-            </div>
-            <div className="space-y-2.5">
-              {options.map(({ key, label, rawKey }) => {
-                const isSelected = answers[currentIndex] === rawKey;
-                return (
-                  <button key={key} onClick={() => handleSelect(rawKey)}
-                    className="w-full flex items-center gap-3 p-3.5 rounded-xl border-2 text-left transition-all duration-150"
-                    style={{
-                      borderColor: isSelected ? '#4F46E5' : '#E2E8F0',
-                      background: isSelected ? '#EEF2FF' : '#F8FAFC',
-                    }}>
-                    <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0"
-                      style={{ background: isSelected ? '#4F46E5' : '#E2E8F0', color: isSelected ? 'white' : '#64748B' }}>
-                      {key.toUpperCase()}
-                    </span>
-                    <span className="text-sm font-medium" style={{ color: isSelected ? '#3730A3' : '#334155' }}>{label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between gap-3">
-          <button onClick={() => setCurrentIndex(i => Math.max(0, i - 1))} disabled={currentIndex === 0}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-30">
-            <ChevronLeft size={16} /> Previous
-          </button>
-
-          <div className="flex gap-1.5 flex-wrap justify-center">
-            {questions.map((_, i) => (
-              <button key={i} onClick={() => setCurrentIndex(i)}
-                className="w-8 h-8 rounded-lg text-xs font-bold transition-all"
-                style={{
-                  background: i === currentIndex ? '#4F46E5' : answers[i] ? '#DCFCE7' : '#F1F5F9',
-                  color: i === currentIndex ? 'white' : answers[i] ? '#16A34A' : '#64748B',
-                }}>{i + 1}</button>
-            ))}
+    <div className="min-h-screen bg-slate-50 flex flex-col animate-fade-in relative z-50 fixed inset-0">
+       <div className="bg-white border-b border-slate-200 px-6 lg:px-12 py-4 flex items-center justify-between shadow-sm sticky top-0 z-40">
+          <div className="flex items-center gap-4">
+             <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-600/30">
+               <ShieldAlert size={20}/>
+             </div>
+             <div>
+               <h2 className="font-black text-slate-800 text-lg">{quiz.title}</h2>
+               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Sec Session</p>
+             </div>
           </div>
 
-          {currentIndex < questions.length - 1 ? (
-            <button onClick={() => setCurrentIndex(i => i + 1)}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-              style={{ background: '#4F46E5' }}>
-              Next <ChevronRight size={16} />
-            </button>
-          ) : (
-            <button onClick={handleSubmit} disabled={submitting}
-              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-60"
-              style={{ background: 'linear-gradient(135deg, #4F46E5, #06B6D4)' }}>
-              <Send size={14} /> {submitting ? 'Submitting…' : 'Submit'}
-            </button>
-          )}
-        </div>
-      </div>
+          <div className={`flex items-center gap-3 px-6 py-2.5 rounded-2xl border-2 font-black text-xl transition-colors ${isWarning ? 'bg-red-50 border-red-200 text-red-600 animate-pulse' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
+             <Clock size={24} className={isWarning ? 'text-red-500' : 'text-slate-400'}/>
+             {formatTime(timeLeft)}
+          </div>
+       </div>
+
+       <div className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 grid lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-3 flex flex-col">
+             <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl p-8 lg:p-12 mb-6 flex-1 relative overflow-hidden">
+                <div className="flex justify-between items-center mb-8 pb-6 border-b border-slate-100">
+                   <span className="px-4 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 font-extrabold text-sm border border-indigo-100/50">Question {currentIdx + 1} of {questions.length}</span>
+                   <span className="text-slate-400 font-bold text-sm bg-slate-50 px-3 py-1 rounded-md">{currentQ.marks} PTS</span>
+                </div>
+
+                <h3 className="text-2xl font-black text-slate-800 leading-relaxed mb-10">{currentQ.questionText}</h3>
+
+                <div className="space-y-4">
+                   {currentQ.options?.map(opt => {
+                      const isSelected = answers[currentQ._id] === opt.key;
+                      return (
+                         <div key={opt.key} onClick={() => selectAnswer(currentQ._id, opt.key)} className={`w-full text-left p-5 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-4 hover:-translate-y-0.5 ${isSelected ? 'border-indigo-500 bg-indigo-50/50 shadow-md shadow-indigo-500/10' : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-sm'}`}>
+                            <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 bg-slate-50'}`}>
+                               {isSelected && <div className="w-3 h-3 bg-white rounded-full"/>}
+                            </div>
+                            <span className={`font-semibold text-lg ${isSelected ? 'text-indigo-900' : 'text-slate-700'}`}>{opt.text}</span>
+                         </div>
+                      );
+                   })}
+                </div>
+             </div>
+
+             <div className="flex items-center justify-between">
+                <button disabled={currentIdx === 0} onClick={() => setCurrentIdx(i => i - 1)} className="px-6 py-3.5 rounded-xl font-bold border-2 border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-indigo-600 disabled:opacity-40 transition-colors flex items-center gap-2"><ChevronLeft size={18}/> Previous</button>
+                {currentIdx === questions.length - 1 ? (
+                   <button disabled={submitting} onClick={() => { if(window.confirm("Submit answers and close the session?")) handleSubmit(); }} className="px-8 py-3.5 rounded-xl font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2">Finish Exam <Send size={18}/></button>
+                ) : (
+                   <button onClick={() => setCurrentIdx(i => i + 1)} className="px-8 py-3.5 rounded-xl font-black text-white bg-slate-800 hover:bg-indigo-600 shadow-lg transition-all flex items-center gap-2">Next <ChevronRight size={18}/></button>
+                )}
+             </div>
+          </div>
+
+          <div className="hidden lg:block">
+             <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl p-6 sticky top-32">
+                <h4 className="font-black text-slate-800 mb-6 uppercase tracking-wider text-sm flex items-center gap-2"><Flag className="text-indigo-500"/> Node Navigator</h4>
+                <div className="grid grid-cols-5 gap-3">
+                   {questions.map((q, i) => {
+                      const isAns = answers[q._id];
+                      const isCurr = currentIdx === i;
+                      return (
+                         <button key={q._id} onClick={() => setCurrentIdx(i)} className={`w-10 h-10 rounded-xl font-bold text-sm flex items-center justify-center transition-all ${isCurr ? 'ring-4 ring-indigo-200 ring-offset-1 bg-indigo-600 text-white shadow-md' : isAns ? 'bg-indigo-50 border-2 border-indigo-200 text-indigo-700' : 'bg-white border-2 border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'}`}>
+                            {i + 1}
+                         </button>
+                      );
+                   })}
+                </div>
+                
+                <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col gap-3 text-xs font-semibold text-slate-500 tracking-wider uppercase">
+                   <div className="flex items-center gap-3"><div className="w-4 h-4 rounded-md border-2 border-slate-200 bg-white"/> Unanswered</div>
+                   <div className="flex items-center gap-3"><div className="w-4 h-4 rounded-md border-2 border-indigo-200 bg-indigo-50"/> Attempted</div>
+                   <div className="flex items-center gap-3"><div className="w-4 h-4 rounded-md bg-indigo-600"/> Current Node</div>
+                </div>
+
+                <button disabled={submitting} onClick={() => { if(window.confirm("Submit early?")) handleSubmit(); }} className="mt-8 w-full py-3 rounded-xl border-2 border-slate-900 bg-slate-900 text-white font-bold hover:bg-slate-800 transition-colors">Submit All</button>
+             </div>
+          </div>
+       </div>
+
+       {submitting && (
+          <div className="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-6">
+             <div className="bg-white rounded-[2rem] p-10 max-w-md w-full text-center shadow-2xl flex flex-col items-center">
+                <div className="w-16 h-16 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-6" />
+                <h3 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Syncing Results...</h3>
+                <p className="font-semibold text-slate-500">Transmitting secure package payload to server cluster.</p>
+             </div>
+          </div>
+       )}
     </div>
   );
 }

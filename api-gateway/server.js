@@ -21,7 +21,6 @@ app.get('/', (req, res) => {
       kuppiClass: process.env.VACANCY_SERVICE_URL,
       resource:   process.env.RESOURCE_SERVICE_URL,
       studyGroup: process.env.STUDY_GROUP_SERVICE_URL,
-      quiz:       process.env.QUIZ_SERVICE_URL,
     }
   });
 });
@@ -32,11 +31,10 @@ app.get('/health', (req, res) => {
     gateway: '✅ Running',
     port: process.env.PORT || 5000,
     services: {
-      'auth-service':           `${process.env.AUTH_SERVICE_URL}/api/auth`,
-      'kuppi-class-service':    `${process.env.VACANCY_SERVICE_URL}/api/kuppi-class`,
-      'resource-sharing-service': `${process.env.RESOURCE_SERVICE_URL}/api/resources`,
+      'auth-service':               `${process.env.AUTH_SERVICE_URL}/api/auth`,
+      'kuppi-class-service':        `${process.env.VACANCY_SERVICE_URL}/api/kuppi-class`,
+      'resource-sharing-service':   `${process.env.RESOURCE_SERVICE_URL}/api/resources`,
       'study-group-service':        `${process.env.STUDY_GROUP_SERVICE_URL}/api/study-groups`,
-      'quiz-service':               `${process.env.QUIZ_SERVICE_URL}/api/quizzes`,
     }
   });
 });
@@ -98,17 +96,18 @@ app.use('/api/study-groups', createProxyMiddleware({
 }));
 
 // Quiz Service → http://localhost:5005
-app.use('/api/quizzes', createProxyMiddleware({
-  target: process.env.QUIZ_SERVICE_URL + '/api/quizzes',
-  changeOrigin: true,
-  on: {
-    error: (err, req, res) => {
-      res.status(503).json({ message: 'Quiz service unavailable' });
+['api/quizzes', 'api/questions', 'api/attempts', 'api/leaderboard', 'api/subjects'].forEach(route => {
+  app.use(`/${route}`, createProxyMiddleware({
+    target: process.env.QUIZ_SERVICE_URL + `/${route}`,
+    changeOrigin: true,
+    on: {
+      error: (err, req, res) => {
+        res.status(503).json({ message: 'Quiz service unavailable' });
+      }
     }
-  }
-}));
+  }));
+});
 
-// 404 handler
 // 404 handler
 app.use('*splat', (req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });

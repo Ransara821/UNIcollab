@@ -26,13 +26,6 @@ export default function Register() {
     }
   };
 
-  const inputStyle = {
-    background: 'rgba(255,255,255,0.06)',
-    border: '1px solid rgba(255,255,255,0.1)',
-  };
-  const focusStyle = { borderColor: '#4F46E5', boxShadow: '0 0 0 3px rgba(79,70,229,0.15)' };
-  const blurStyle = { borderColor: 'rgba(255,255,255,0.1)', boxShadow: 'none' };
-
   const fields = [
     { label: 'Full Name',    key: 'name',      type: 'text',     placeholder: 'Enter your full name',          icon: User },
     { label: 'Student ID',   key: 'studentId', type: 'text',     placeholder: 'e.g. IT23100000',               icon: Hash },
@@ -42,64 +35,61 @@ export default function Register() {
   ];
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12" style={{ background: '#0F172A' }}>
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] -z-0 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%)' }} />
+    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-slate-50 font-sans text-slate-800 selection:bg-emerald-100 selection:text-emerald-900 overflow-hidden relative">
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-200/40 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none -z-0" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-teal-100/60 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/3 pointer-events-none -z-0" />
 
-      <div className="w-full max-w-md relative z-10 animate-slide-up">
+      <div className="w-full max-w-[480px] relative z-10 animate-in slide-in-from-bottom-4 duration-500">
         {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, #4F46E5, #06B6D4)' }}>
-            <BookMarked size={18} color="white" />
+        <div className="flex items-center justify-center gap-3 mb-10">
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 bg-gradient-to-br from-emerald-500 to-teal-400">
+            <BookMarked size={24} color="white" />
           </div>
-          <span className="text-2xl font-bold text-white">UNI<span style={{ color: '#06B6D4' }}>collab</span></span>
+          <span className="text-3xl font-black text-slate-900 tracking-tight">UNI<span className="text-emerald-500">collab</span></span>
         </div>
 
-        <div className="p-8 rounded-2xl" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] ring-1 ring-slate-900/5">
           <div className="mb-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-1">Create your account</h2>
-            <p className="text-slate-400">Join UNIcollab and start learning today</p>
+            <h2 className="text-2xl font-black text-slate-900 mb-2">Create your account</h2>
+            <p className="text-slate-500 font-medium">Join UNIcollab and start learning today</p>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl mb-6 text-sm"
-              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', color: '#FCA5A5' }}>
-              <AlertCircle size={16} /> {error}
+            <div className="flex items-center gap-3 p-4 rounded-xl mb-6 text-sm font-bold bg-red-50 border border-red-100 text-red-600">
+              <AlertCircle size={18} className="shrink-0" /> {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {fields.map(({ label, key, type, placeholder, icon: Icon }) => (
               <div key={key}>
-                <label className="block text-sm font-medium mb-2" style={{ color: '#94A3B8' }}>{label}</label>
+                <label className="block text-sm font-bold text-slate-700 mb-1.5 px-1">{label}</label>
                 <div className="relative">
-                  <Icon size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#475569' }} />
+                  <Icon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type={type}
                     value={form[key]}
                     onChange={e => setForm({ ...form, [key]: e.target.value })}
                     placeholder={placeholder}
                     required
-                    className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-slate-600 outline-none transition-all"
-                    style={inputStyle}
-                    onFocus={e => Object.assign(e.target.style, focusStyle)}
-                    onBlur={e => Object.assign(e.target.style, blurStyle)}
+                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-slate-800 placeholder-slate-400 bg-slate-50 border border-slate-200 outline-none transition-all focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold"
                   />
                 </div>
               </div>
             ))}
 
-            <button type="submit" disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-white transition-all mt-2 disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg, #4F46E5, #06B6D4)' }}>
-              {loading ? 'Creating account...' : <><span>Create Account</span><ArrowRight size={16} /></>}
-            </button>
+            <div className="pt-4">
+              <button type="submit" disabled={loading}
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-white transition-all transform hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:active:scale-100 disabled:hover:translate-y-0 shadow-lg shadow-emerald-500/25"
+                style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
+                {loading ? 'Creating account...' : <><span>Create Account</span><ArrowRight size={18} /></>}
+              </button>
+            </div>
           </form>
 
-          <p className="text-center mt-6 text-sm" style={{ color: '#64748B' }}>
+          <p className="text-center mt-8 text-sm font-medium text-slate-500">
             Already have an account?{' '}
-            <Link to="/login" className="font-semibold hover:text-indigo-400 transition-colors" style={{ color: '#818CF8' }}>
+            <Link to="/login" className="font-bold text-emerald-600 hover:text-emerald-500 transition-colors">
               Sign in
             </Link>
           </p>
