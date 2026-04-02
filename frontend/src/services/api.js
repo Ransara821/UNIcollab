@@ -45,6 +45,7 @@ export const createStudyGroup    = (data)   => axios.post(`${API_URL}/study-grou
 export const getStudyGroup       = (id)     => axios.get(`${API_URL}/study-groups/${id}`, authHeaders());
 export const getMyGroup          = ()       => axios.get(`${API_URL}/study-groups/my`, authHeaders());
 export const joinStudyGroup      = (id)     => axios.post(`${API_URL}/study-groups/${id}/join`, {}, authHeaders()); // Added from main
+export const updateStudyGroup    = (id, data) => axios.patch(`${API_URL}/study-groups/${id}`, data, authHeaders());
 export const toggleGroupStatus   = (id)     => axios.patch(`${API_URL}/study-groups/${id}/status`, {}, authHeaders());
 export const updateSkillsNeeded  = (id, data) => axios.patch(`${API_URL}/study-groups/${id}/skills-needed`, data, authHeaders());
 
