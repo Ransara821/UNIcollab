@@ -11,7 +11,10 @@ exports.sendRequest = async (req, res) => {
       return res.status(400).json({ message: 'Already a member' });
 
     const studentProfile = await StudentProfile.findOne({ userId: req.user.id });
-    if (studentProfile?.status === 'inGroup')
+    if (!studentProfile || !studentProfile.faculty || !studentProfile.skills?.length)
+      return res.status(400).json({ message: 'Please complete your student profile before sending a join request' });
+
+    if (studentProfile.status === 'inGroup')
       return res.status(400).json({ message: 'You are already in a group' });
 
     const existing = await JoinRequest.findOne({
@@ -77,7 +80,15 @@ exports.getGroupRequests = async (req, res) => {
 
     const requests = await JoinRequest.find({ groupId: req.params.id, direction: 'student-to-group' })
       .sort({ createdAt: -1 });
-    res.json(requests);
+
+    // Attach student profile to each request
+    const enriched = await Promise.all(requests.map(async (r) => {
+      const profile = await StudentProfile.findOne({ userId: r.studentId },
+        'name email year semester gpa faculty skills workingStyle availability deadline');
+      return { ...r.toObject(), studentProfile: profile || null };
+    }));
+
+    res.json(enriched);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

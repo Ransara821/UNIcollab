@@ -19,6 +19,7 @@ router.patch('/requests/:requestId', protect, request.updateRequest);
 router.get('/',   protect, group.getGroups);
 router.post('/',  protect, group.createGroup);
 router.get('/:id',               protect, group.getGroup);
+router.patch('/:id',             protect, group.updateGroup);
 router.patch('/:id/status',      protect, group.toggleStatus);
 router.patch('/:id/skills-needed', protect, group.updateSkillsNeeded);
 
