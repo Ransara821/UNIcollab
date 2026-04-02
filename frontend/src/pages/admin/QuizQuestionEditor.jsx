@@ -329,12 +329,6 @@ export default function QuizQuestionEditor() {
         {!adding && (
           <div className="flex flex-wrap gap-3">
             <button
-              onClick={() => setShowImport(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold text-slate-700 bg-white border-2 border-slate-200 hover:border-emerald-300 hover:text-emerald-600 hover:bg-emerald-50 transition-all shadow-sm"
-            >
-              <DownloadCloud size={16} /> Import QuizAPI
-            </button>
-            <button
               onClick={() => { setAdding(true); setEditId(null); }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/25 hover:-translate-y-0.5 transition-all"
             >
@@ -382,19 +376,13 @@ export default function QuizQuestionEditor() {
               <HelpCircle size={28} className="text-emerald-400" />
             </div>
             <h3 className="font-bold text-xl text-slate-800 mb-2">No questions yet</h3>
-            <p className="text-slate-500 font-medium mb-6 text-sm">Add questions manually or import from QuizAPI.</p>
+            <p className="text-slate-500 font-medium mb-6 text-sm">Add questions manually below.</p>
             <div className="flex justify-center gap-3">
               <button
                 onClick={() => setAdding(true)}
                 className="px-6 py-2.5 rounded-xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/25 transition-all"
               >
                 Add Question
-              </button>
-              <button
-                onClick={() => setShowImport(true)}
-                className="px-6 py-2.5 rounded-xl text-sm font-black text-slate-600 bg-white border-2 border-slate-200 hover:border-emerald-300 hover:text-emerald-600 transition-all"
-              >
-                Import QuizAPI
               </button>
             </div>
           </div>

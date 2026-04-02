@@ -30,7 +30,16 @@ export default function QuizResult() {
     <div className="p-20 text-center text-red-500 font-bold">Result not found.</div>
   );
 
-  const percent  = Math.round((attempt.score / (attempt.totalQuestions || 1)) * 100);
+  const safeTotalQ = attempt.totalQuestions || 0;
+  
+  // Strictly truncate to 2 decimals without rounding (e.g., 66.666... -> 66.66)
+  let percent = 0;
+  if (safeTotalQ > 0) {
+    const rawPercent = (attempt.score / safeTotalQ) * 100;
+    const strMatch = rawPercent.toString().match(/^-?\d+(?:\.\d{0,2})?/);
+    percent = strMatch ? parseFloat(strMatch[0]) : 0;
+  }
+
   const passed   = percent >= (attempt.quizId?.passMark || 0);
   const totalPts = attempt.answers?.reduce((s, a) => s + (a.questionId?.marks || 1), 0) ?? attempt.totalQuestions;
 
@@ -62,7 +71,7 @@ export default function QuizResult() {
               <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">Score</p>
               <p className="text-3xl font-black">
                 {attempt.score}
-                <span className="text-lg font-bold opacity-60"> / {attempt.totalQuestions}</span>
+                <span className="text-lg font-bold opacity-60"> / {safeTotalQ}</span>
               </p>
             </div>
             <div className="w-px h-10 bg-white/30 hidden sm:block" />
