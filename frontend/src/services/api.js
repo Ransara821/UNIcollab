@@ -25,10 +25,10 @@ export const rateKuppiClass         = (id, rating) => axios.post(`${API_URL}/kup
 export const getMySessions                = () => axios.get(`${API_URL}/kuppi-class/my-sessions`, authHeaders());
 export const updateKuppiClass             = (id, data) => axios.put(`${API_URL}/kuppi-class/${id}`, data, authHeaders());
 export const deleteKuppiClass             = (id) => axios.delete(`${API_URL}/kuppi-class/${id}`, authHeaders());
-export const applyForRecognition          = (data) => axios.post(`${API_URL}/kuppi-class/recognition/apply`, data, authHeaders());
+export const applyForRecognition          = (data) => axios.post(`${API_URL}/kuppi-class/recognition/apply`, data, { headers: { Authorization: `Bearer ${getToken()}` } });
 export const getAllRecognitionApplications = () => axios.get(`${API_URL}/kuppi-class/recognition/all`);
 export const getMyRecognitionApplication  = () => axios.get(`${API_URL}/kuppi-class/recognition/mine`, authHeaders());
-export const updateRecognitionApplication = (data) => axios.put(`${API_URL}/kuppi-class/recognition/mine`, data, authHeaders());
+export const updateRecognitionApplication = (data) => axios.put(`${API_URL}/kuppi-class/recognition/mine`, data, { headers: { Authorization: `Bearer ${getToken()}` } });
 
 // Study Group Finder
 export const getStudyGroups = () => axios.get(`${API_URL}/study-groups`, authHeaders());

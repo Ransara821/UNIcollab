@@ -5,7 +5,7 @@ import {
   getMyRecognitionStatus, rateKuppiClass,
   createKuppiClass, getMySessions,
   updateKuppiClass, deleteKuppiClass,
-  applyForRecognition, getAllRecognitionApplications, getMyRecognitionApplication, updateRecognitionApplication,
+  applyForRecognition, getAllRecognitionApplications, getMyRecognitionApplication,
 } from '../../services/api';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -54,10 +54,73 @@ function SessionFormModal({ title, initialValues = EMPTY_FORM, filterOptions, on
   const [form, setForm]         = useState({ ...EMPTY_FORM, ...initialValues });
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr]           = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const validateForm = () => {
+    const errors = {};
+
+    // Title validation
+    if (!form.title || form.title.trim().length === 0) {
+      errors.title = 'Title is required';
+    } else if (form.title.trim().length < 5) {
+      errors.title = 'Title must be at least 5 characters';
+    } else if (form.title.length > 100) {
+      errors.title = 'Title must be less than 100 characters';
+    }
+
+    // Subject validation
+    if (!form.subject) {
+      errors.subject = 'Subject is required';
+    }
+
+    // Academic Year validation
+    if (!form.academicYear) {
+      errors.academicYear = 'Academic Year is required';
+    }
+
+    // Date & Time validation
+    if (!form.sessionDate) {
+      errors.sessionDate = 'Date & Time is required';
+    } else {
+      const selectedDate = new Date(form.sessionDate);
+      const now = new Date();
+      if (selectedDate <= now) {
+        errors.sessionDate = 'Session date must be in the future';
+      }
+    }
+
+    // Capacity validation
+    if (!form.capacity) {
+      errors.capacity = 'Capacity is required';
+    } else if (form.capacity < 1 || form.capacity > 200) {
+      errors.capacity = 'Capacity must be between 1 and 200';
+    }
+
+    // Location validation (optional but if provided)
+    if (form.location && form.location.trim().length < 3) {
+      errors.location = 'Location must be at least 3 characters';
+    }
+
+    // Description validation (optional but if provided)
+    if (form.description && form.description.trim().length < 10) {
+      errors.description = 'Description must be at least 10 characters';
+    }
+
+    return errors;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const errors = validateForm();
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setErr('Please fix the errors below');
+      return;
+    }
+
+    setFieldErrors({});
     setSubmitting(true); setErr('');
     try { await onSave(form); onClose(); }
     catch (e) { setErr(e.response?.data?.message || 'Operation failed.'); }
@@ -71,46 +134,70 @@ function SessionFormModal({ title, initialValues = EMPTY_FORM, filterOptions, on
           <h2 className="text-xl font-extrabold text-slate-800">{title}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
         </div>
-        {err && <p className="text-red-500 text-sm mb-4 font-medium">⚠️ {err}</p>}
+        {err && <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
+          <p className="text-red-700 text-sm font-medium">⚠️ {err}</p>
+        </div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Title *</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Title *</label>
+              <span className="text-xs text-slate-400">{form.title.length}/100</span>
+            </div>
             <input required value={form.title} onChange={e => set('title', e.target.value)}
               placeholder="e.g. OOP Exam Prep Session"
-              className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+              className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none transition ${
+                fieldErrors.title ? 'border-red-300 focus:border-red-500 bg-red-50' : 'border-slate-200 focus:border-emerald-500'
+              }`} />
+            {fieldErrors.title && <p className="mt-1 text-xs text-red-600 font-medium">✗ {fieldErrors.title}</p>}
           </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Subject *</label>
               <select required value={form.subject} onChange={e => set('subject', e.target.value)}
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none transition ${
+                  fieldErrors.subject ? 'border-red-300 focus:border-red-500 bg-red-50' : 'border-slate-200 focus:border-emerald-500'
+                }`}>
                 <option value="">Select subject</option>
                 {filterOptions.subjects.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
+              {fieldErrors.subject && <p className="mt-1 text-xs text-red-600 font-medium">✗ {fieldErrors.subject}</p>}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Academic Year *</label>
               <select required value={form.academicYear} onChange={e => set('academicYear', e.target.value)}
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none transition ${
+                  fieldErrors.academicYear ? 'border-red-300 focus:border-red-500 bg-red-50' : 'border-slate-200 focus:border-emerald-500'
+                }`}>
                 <option value="">Select year</option>
                 {filterOptions.academicYears.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
+              {fieldErrors.academicYear && <p className="mt-1 text-xs text-red-600 font-medium">✗ {fieldErrors.academicYear}</p>}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Date & Time *</label>
               <input required type="datetime-local" value={form.sessionDate} onChange={e => set('sessionDate', e.target.value)}
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none transition ${
+                  fieldErrors.sessionDate ? 'border-red-300 focus:border-red-500 bg-red-50' : 'border-slate-200 focus:border-emerald-500'
+                }`} />
+              {fieldErrors.sessionDate && <p className="mt-1 text-xs text-red-600 font-medium">✗ {fieldErrors.sessionDate}</p>}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Capacity *</label>
               <input required type="number" min="1" max="200" value={form.capacity} onChange={e => set('capacity', e.target.value)}
                 placeholder="Max participants"
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none transition ${
+                  fieldErrors.capacity ? 'border-red-300 focus:border-red-500 bg-red-50' : 'border-slate-200 focus:border-emerald-500'
+                }`} />
+              {fieldErrors.capacity && <p className="mt-1 text-xs text-red-600 font-medium">✗ {fieldErrors.capacity}</p>}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Location</label>
               <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="e.g. Lab 2, Block A"
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none transition ${
+                  fieldErrors.location ? 'border-red-300 focus:border-red-500 bg-red-50' : 'border-slate-200 focus:border-emerald-500'
+                }`} />
+              {fieldErrors.location && <p className="mt-1 text-xs text-red-600 font-medium">✗ {fieldErrors.location}</p>}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Your Name</label>
@@ -119,14 +206,20 @@ function SessionFormModal({ title, initialValues = EMPTY_FORM, filterOptions, on
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Description</label>
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Description</label>
+              <span className="text-xs text-slate-400">{form.description.length}/500</span>
+            </div>
             <textarea rows={3} value={form.description} onChange={e => set('description', e.target.value)}
-              placeholder="What will be covered?"
-              className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 resize-none" />
+              placeholder="What will be covered? (Optional but recommended)"
+              className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none transition resize-none ${
+                fieldErrors.description ? 'border-red-300 focus:border-red-500 bg-red-50' : 'border-slate-200 focus:border-emerald-500'
+              }`} />
+            {fieldErrors.description && <p className="mt-1 text-xs text-red-600 font-medium">✗ {fieldErrors.description}</p>}
           </div>
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
+            <button type="button" onClick={onClose} disabled={submitting}
+              className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50">
               Cancel
             </button>
             <button type="submit" disabled={submitting}
@@ -332,7 +425,7 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
     getMyRecognitionApplication()
       .then(r => {
         setMyApp(r.data);
-        if (r.data) setEditForm(r.data);  // initialize edit form with current data
+        if (r.data) setEditForm(r.data);
       })
       .catch(() => setMyApp(null));
     loadAll();
@@ -345,11 +438,12 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
       const res = await applyForRecognition(form);
       setMyApp(res.data.application);
       setForm(EMPTY_APP);
-      if (res.data.application) setEditForm(res.data.application);
-      onRefreshRecognition();   // update badge + unlock Create Session tab
+      onRefreshRecognition();
       loadAll();
     } catch (err) {
-      setFormErr(err.response?.data?.message || 'Submission failed. Please try again.');
+      console.error('❌ Recognition submit error:', err);
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Submission failed. Please try again.';
+      setFormErr(errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -365,74 +459,106 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
       onRefreshRecognition();
       loadAll();
     } catch (err) {
-      setEditErr(err.response?.data?.message || 'Update failed. Please try again.');
+      console.error('❌ Recognition update error:', err);
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || err.message || 'Update failed. Please try again.';
+      setEditErr(errorMsg);
     } finally {
       setEditSubmitting(false);
     }
   };
 
   const isRecognized = recognition?.recognitionStatus === 'recognized';
-  const completedSessions = recognition?.completedSessionsCount ?? 0;
-  const minSessions = recognition?.thresholds?.MIN_COMPLETED_SESSIONS ?? 3;
-  const hasCompletedRequired = completedSessions >= minSessions;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
 
       {/* ── Edit Modal ── */}
       {isEditing && myApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 my-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-extrabold text-slate-800">Edit Recognition Details</h2>
-              <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 my-auto transform transition-all">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-900">✏️ Edit Your Profile</h2>
+                <p className="text-sm text-slate-500 mt-1">Update your recognition details</p>
+              </div>
+              <button onClick={() => setIsEditing(false)}
+                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-all text-xl">
+                ×
+              </button>
             </div>
-            {editErr && <p className="text-red-500 text-sm mb-4 font-medium">⚠️ {editErr}</p>}
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Full Name *</label>
+
+            {/* Error Message */}
+            {editErr && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+                <span className="text-xl mt-0.5">⚠️</span>
+                <p className="text-red-700 text-sm font-medium">{editErr}</p>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleEditSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {/* Full Name */}
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Full Name</label>
                   <input required value={editForm.name} onChange={e => setEditField('name', e.target.value)}
                     placeholder="e.g. Kasun Perera"
-                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-emerald-50/30 transition-all duration-200" />
                 </div>
+
+                {/* Academic Year */}
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Academic Year *</label>
+                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Academic Year</label>
                   <input required value={editForm.year} onChange={e => setEditField('year', e.target.value)}
                     placeholder="e.g. Year 2"
-                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-emerald-50/30 transition-all duration-200" />
                 </div>
+
+                {/* Specialization */}
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Specialization *</label>
+                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Specialization</label>
                   <input required value={editForm.specialization} onChange={e => setEditField('specialization', e.target.value)}
                     placeholder="e.g. Computer Science"
-                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-emerald-50/30 transition-all duration-200" />
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Qualification *</label>
+
+                {/* Qualification */}
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Qualification</label>
                   <input required value={editForm.qualification} onChange={e => setEditField('qualification', e.target.value)}
                     placeholder="e.g. BSc (Hons) in IT"
-                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-2xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-emerald-50/30 transition-all duration-200" />
                 </div>
               </div>
-              <div className="flex gap-3 pt-2">
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-6 border-t border-slate-100">
                 <button type="button" onClick={() => setIsEditing(false)} disabled={editSubmitting}
-                  className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50">
+                  className="flex-1 py-3 px-4 border-2 border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold rounded-2xl transition-all duration-200 hover:border-slate-300 disabled:opacity-50 disabled:cursor-not-allowed">
                   Cancel
                 </button>
                 <button type="submit" disabled={editSubmitting}
-                  className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition disabled:opacity-50">
-                  {editSubmitting ? 'Saving…' : 'Save Changes'}
+                  className="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-bold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-emerald-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {editSubmitting ? (
+                    <>
+                      <span className="inline-block animate-spin">⏳</span> Saving...
+                    </>
+                  ) : (
+                    <>✓ Save Changes</>
+                  )}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* ── My Recognition Status ── */}
       {myApp === undefined ? (
         <div className="py-10 text-center text-slate-400">Loading…</div>
-      ) : myApp && hasCompletedRequired ? (
-        /* Already applied and completed required sessions — show recognition card */
+      ) : myApp ? (
+        /* Already applied — show recognition card */
         <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
           <div className="flex items-center justify-between gap-4 mb-4">
             <div className="flex items-center gap-4">
@@ -443,11 +569,12 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
                 <p className="text-sm text-emerald-600 mt-0.5">You can now create and manage Kuppi sessions.</p>
               </div>
             </div>
-            <button onClick={() => setIsEditing(true)}
+            <button onClick={() => { setEditForm(myApp); setIsEditing(true); }}
               className="px-4 py-2 bg-white hover:bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs font-bold rounded-xl transition whitespace-nowrap">
               ✏️ Edit
             </button>
           </div>
+
           <div className="grid grid-cols-2 gap-3 text-sm">
             {[
               { label: 'Name',           value: myApp.name },
@@ -462,44 +589,6 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
             ))}
           </div>
         </div>
-      ) : myApp && !hasCompletedRequired ? (
-        /* Applied but not yet completed required sessions — show progress */
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-2xl shadow-sm">⏳</div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-0.5">Application Pending</p>
-                <h2 className="text-xl font-extrabold text-amber-800">Complete {minSessions} Sessions</h2>
-                <p className="text-sm text-amber-600 mt-0.5">You need to complete {minSessions - completedSessions} more session(s) to be recognized.</p>
-              </div>
-            </div>
-            <button onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-white hover:bg-amber-50 border border-amber-200 text-amber-600 text-xs font-bold rounded-xl transition whitespace-nowrap">
-              ✏️ Edit
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-            {[
-              { label: 'Name',           value: myApp.name },
-              { label: 'Year',           value: myApp.year },
-              { label: 'Specialization', value: myApp.specialization },
-              { label: 'Qualification',  value: myApp.qualification },
-            ].map(({ label, value }) => (
-              <div key={label} className="bg-white/70 rounded-xl px-4 py-3 border border-amber-100">
-                <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-0.5">{label}</p>
-                <p className="font-semibold text-slate-800">{value}</p>
-              </div>
-            ))}
-          </div>
-          <div className="bg-white rounded-xl px-4 py-3 border border-amber-100">
-            <p className="text-sm font-semibold text-slate-700 mb-2">Completed Sessions: {completedSessions} / {minSessions}</p>
-            <div className="w-full bg-amber-100 rounded-full h-2.5">
-              <div className="bg-amber-500 h-2.5 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, (completedSessions / minSessions) * 100)}%` }} />
-            </div>
-          </div>
-        </div>
       ) : (
         /* Not yet applied — show recognition form */
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
@@ -511,7 +600,12 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
             </div>
           </div>
 
-          {formErr && <p className="text-red-500 text-sm mb-4 font-medium">⚠️ {formErr}</p>}
+      {formErr && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+          <span className="text-xl mt-0.5">⚠️</span>
+          <p className="text-red-700 text-sm font-medium">{formErr}</p>
+        </div>
+      )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -540,6 +634,7 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
                   className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
               </div>
             </div>
+
             <button type="submit" disabled={submitting}
               className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition disabled:opacity-50 shadow-sm shadow-emerald-200">
               {submitting ? 'Submitting…' : 'Submit & Get Recognized'}
@@ -562,16 +657,30 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
         {!appsLoading && allApps.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {allApps.map(app => (
-              <div key={app._id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/30 transition">
-                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-lg shrink-0">
-                  {app.name.charAt(0).toUpperCase()}
+              <div key={app._id} className="flex flex-col p-4 rounded-xl border border-slate-100 hover:border-emerald-200 hover:shadow-lg transition overflow-hidden bg-white">
+                {/* Content */}
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-lg font-bold shrink-0 text-emerald-700">
+                    {app.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-slate-800 text-sm truncate">{app.name}</p>
+                    <p className="text-xs text-slate-500 font-medium">{app.year}</p>
+                  </div>
+                  <span className="shrink-0 text-lg">🏅</span>
                 </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-slate-800 text-sm truncate">{app.name}</p>
-                  <p className="text-xs text-slate-500 truncate">{app.specialization} · {app.year}</p>
-                  <p className="text-xs text-emerald-600 font-medium truncate">{app.qualification}</p>
+
+                {/* Details */}
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <p className="text-slate-500 font-bold uppercase tracking-wider mb-0.5">Specialization</p>
+                    <p className="text-slate-700 font-medium">{app.specialization}</p>
+                  </div>
+                  <div>
+                    <p className="text-slate-500 font-bold uppercase tracking-wider mb-0.5">Qualification</p>
+                    <p className="text-slate-700 font-medium">{app.qualification}</p>
+                  </div>
                 </div>
-                <span className="ml-auto shrink-0 px-2.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-bold">🏅</span>
               </div>
             ))}
           </div>
