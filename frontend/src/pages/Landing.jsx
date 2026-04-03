@@ -1,313 +1,279 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import './Landing.css';
+import { BookMarked, Users, BookOpen, BrainCircuit, ChevronRight, MapPin, Mail, ArrowRight, CheckCircle2, Star, PlayCircle, Award, File as FileIcon } from 'lucide-react';
 
-const Landing = () => {
+import { getPublicFeedbacks } from '../services/api';
+
+export default function Landing() {
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  useEffect(() => {
+    getPublicFeedbacks()
+      .then(res => {
+        // Show up to 3 feedbacks
+        setFeedbacks(res.data.slice(0, 3));
+      })
+      .catch(err => console.error("Could not load feedbacks:", err));
+  }, []);
+
   return (
-    <div className="min-h-screen bg-white font-sans text-slate-600 overflow-x-hidden relative">
-      {/* Background Blobs for overall page */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-100/50 rounded-full blur-[100px] -z-10"></div>
-      <div className="absolute top-[20%] right-[-5%] w-[40%] h-[40%] bg-orange-100/40 rounded-full blur-[80px] -z-10"></div>
+    <div className="min-h-screen font-sans text-slate-800 bg-white selection:bg-emerald-100 selection:text-emerald-900">
 
-      {/* Navbar */}
-      <nav className="fixed w-full top-0 bg-white/90 backdrop-blur-md z-50 border-b border-slate-100 shadow-sm">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-emerald-500 text-3xl">🎓</span>
-            <div className="font-bold text-2xl text-slate-900 tracking-tight">
-              UNI<span className="text-emerald-500">collab</span>
+      {/* ── Navbar ───────────────────────────────────── */}
+      <nav className="fixed w-full top-0 z-50 px-6 py-4 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-300">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-400 shadow-md shadow-emerald-500/20">
+              <BookMarked size={18} color="white" />
             </div>
+            <span className="text-2xl font-black text-slate-900 tracking-tight">
+              UNI<span className="text-emerald-500">collab</span>
+            </span>
           </div>
-          
-          <div className="hidden md:flex space-x-8 text-slate-600 font-medium">
-            <a href="#home" className="hover:text-emerald-600 transition-colors">Home</a>
-            <a href="#features" className="hover:text-emerald-600 transition-colors">Features</a>
-            <a href="#academics" className="hover:text-emerald-600 transition-colors">Academics</a>
-            <a href="#about" className="hover:text-emerald-600 transition-colors">About Us</a>
-            <a href="#contact" className="hover:text-emerald-600 transition-colors">Contact</a>
+          <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-600">
+            <a href="#features" className="hover:text-emerald-500 transition-colors">Features</a>
+            <a href="#academics" className="hover:text-emerald-500 transition-colors">Academics</a>
+            <a href="#about" className="hover:text-emerald-500 transition-colors">About</a>
           </div>
-
           <div className="flex items-center gap-4">
-            <Link to="/login" className="text-slate-700 font-bold hover:text-emerald-600 transition-colors">Login</Link>
-            <Link to="/register" className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-full font-bold shadow-lg shadow-emerald-500/30 transition-transform transform hover:-translate-y-0.5">
-              Sign Up
+            <Link to="/login" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors hidden sm:block">Sign In</Link>
+            <Link to="/register"
+              className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold text-white transition-all transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/25"
+              style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
+              Get Started
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section id="home" className="pt-32 pb-20 lg:pt-48 lg:pb-32 container mx-auto px-6 relative">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-          
-          <div className="lg:w-1/2 relative z-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 font-semibold mb-6">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Welcome to UNIcollab
+      {/* ── Hero section (Matching image aesthetic) ──────── */}
+      <section id="home" className="pt-32 lg:pt-40 pb-20 relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+        {/* Soft decorative blobs */}
+        <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-emerald-100/40 rounded-full blur-[100px] -z-10 mix-blend-multiply" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-teal-50/60 rounded-full blur-[120px] -z-10 mix-blend-multiply" />
+
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="relative z-10 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-emerald-700 bg-emerald-100/50 border border-emerald-200 mb-8 mx-auto lg:mx-0">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              #1 Student Academic Platform
             </div>
-            
-            <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-tight mb-6 tracking-tight">
-              Better <span className="text-emerald-500">Learning</span> <br />
-              Future Starts <br />
-              With UNIcollab
+
+            <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] tracking-tight mb-6">
+              Better <span className="text-emerald-500 relative">
+                Learning
+                <svg className="absolute w-full h-3 -bottom-1 left-0 text-emerald-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
+                   <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
+                </svg>
+              </span> <br className="hidden lg:block"/> Future Starts <br/> With UNIcollab
             </h1>
-            
-            <p className="text-lg text-slate-500 mb-10 max-w-lg leading-relaxed">
-              Connect with peer-to-peer tutoring, academic resources, and study groups all in one place to achieve academic excellence.
+
+            <p className="text-lg text-slate-500 max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed font-medium">
+              Join thousands of university students connecting for peer tutoring, sharing study materials, and tracking academic progress in one place.
             </p>
-            
-            <div className="flex gap-4">
-              <Link to="/register" className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl shadow-emerald-500/20 transition-all hover:pr-10 relative group">
-                Join Us Today
-                <span className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link to="/register"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white text-base transition-all transform hover:-translate-y-1 shadow-xl shadow-emerald-500/20"
+                style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
+                Start Learning Now <ArrowRight size={18} />
               </Link>
-              <a href="#features" className="bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-100 px-8 py-4 rounded-full font-bold text-lg transition-colors shadow-sm">
-                Learn More
+              <a href="#features"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all">
+                <PlayCircle size={18} className="text-emerald-500" /> Watch Demo
               </a>
             </div>
-          </div>
 
-          <div className="lg:w-1/2 relative">
-             <div className="absolute inset-0 bg-gradient-to-tr from-emerald-100 to-orange-50 rounded-full blur-[80px] -z-10"></div>
-             <img 
-               src="/src/assets/hero_light.png" 
-               alt="Student studying" 
-               className="w-full h-auto object-cover relative z-10 animate-float"
-             />
-             
-             {/* Floating Badge */}
-             <div className="absolute bottom-10 left-[-20px] bg-white p-4 rounded-2xl shadow-xl flex items-center gap-4 z-20 animate-float-delayed">
-               <div className="bg-orange-100 p-3 rounded-full text-2xl">🎓</div>
-               <div>
-                 <div className="text-slate-900 font-bold">100+</div>
-                 <div className="text-slate-500 text-sm">Kuppi Classes</div>
-               </div>
-             </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* Mini Features Row */}
-      <section className="container mx-auto px-6 py-12 relative z-20 -mt-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 md:divide-x divide-slate-100 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-50 p-8">
-          <div className="flex items-center gap-6 p-6">
-            <div className="bg-emerald-50 w-16 h-16 rounded-full flex items-center justify-center text-emerald-500 text-2xl flex-shrink-0">👨‍🏫</div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Expert Tutors</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Learn from top-performing peers in specialized Kuppi classes.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-6 p-6">
-            <div className="bg-orange-50 w-16 h-16 rounded-full flex items-center justify-center text-orange-500 text-2xl flex-shrink-0">📚</div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Study Materials</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Access past papers, lecture notes, and community resources.</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-6 p-6">
-            <div className="bg-blue-50 w-16 h-16 rounded-full flex items-center justify-center text-blue-500 text-2xl flex-shrink-0">🤝</div>
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Study Groups</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">Find like-minded students to collaborate on challenging modules.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Feature Area */}
-      <section id="features" className="py-24 bg-slate-50/50">
-        <div className="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-16">
-          <div className="lg:w-1/2 relative bg-emerald-50 rounded-[40px] p-8 aspect-square flex items-center justify-center">
-             <div className="absolute inset-0 bg-pattern opacity-10 rounded-[40px]"></div>
-             <div className="relative z-10 bg-white p-8 rounded-3xl shadow-xl max-w-md transform -rotate-3 hover:rotate-0 transition-transform duration-500">
-                <h3 className="text-2xl font-bold text-slate-900 mb-6">Learn New Skills To Go Ahead For Your Career</h3>
-                <ul className="space-y-4">
-                  <li className="flex items-start gap-3">
-                    <span className="bg-emerald-100 text-emerald-600 rounded-full p-1 mt-1">✓</span>
-                    <span className="text-slate-600">Premium library of verified study notes.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="bg-emerald-100 text-emerald-600 rounded-full p-1 mt-1">✓</span>
-                    <span className="text-slate-600">Interactive peer tutoring sessions.</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="bg-emerald-100 text-emerald-600 rounded-full p-1 mt-1">✓</span>
-                    <span className="text-slate-600">24/7 access to your academic network.</span>
-                  </li>
-                </ul>
-                <button className="mt-8 bg-emerald-50 text-emerald-600 font-bold px-6 py-3 rounded-xl hover:bg-emerald-100 transition-colors w-full">
-                  Discover platform
-                </button>
-             </div>
-          </div>
-
-          <div className="lg:w-1/2">
-            <div className="text-emerald-500 font-bold uppercase tracking-wider mb-2">ABOUT US</div>
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
-              Our Educational System <br />
-              Inspires You More.
-            </h2>
-            <p className="text-lg text-slate-500 mb-8 leading-relaxed">
-              UNIcollab provides a unique environment where students don't just consume information, but actively participate in peer-to-peer knowledge sharing and collaborative learning.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-8">
-              <div>
-                <div className="text-4xl font-extrabold text-emerald-500 mb-2">50+</div>
-                <div className="text-slate-700 font-medium">Distinct Modules</div>
+            <div className="mt-12 flex items-center justify-center lg:justify-start gap-8 border-t border-slate-200/60 pt-8">
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  {[1,2,3,4].map(i => (
+                    <div key={i} className={`w-8 h-8 rounded-full border-2 border-white bg-slate-200 z-${10-i} flex items-center justify-center text-[10px] font-bold text-slate-600`}>U{i}</div>
+                  ))}
+                </div>
+                <div className="text-sm">
+                  <p className="font-extrabold text-slate-900">200+ Students</p>
+                  <p className="text-slate-500 font-medium">Already joined</p>
+                </div>
               </div>
-              <div>
-                <div className="text-4xl font-extrabold text-orange-400 mb-2">200+</div>
-                <div className="text-slate-700 font-medium">Active Students</div>
+            </div>
+          </div>
+
+          <div className="relative z-10 hidden lg:block">
+            <div className="relative w-full max-w-[550px] mx-auto">
+              {/* Decorative background shape */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-teal-400 to-emerald-400 rounded-full shadow-2xl shadow-emerald-900/20 translate-y-8 -z-10 blur-xl opacity-60"></div>
+              
+              <div className="relative rounded-[40px] overflow-hidden bg-white shadow-2xl shadow-emerald-900/10 border-[8px] border-white z-0">
+                <img src="/hero-student.png" alt="Happy university student holding notebook" className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-700 ease-in-out bg-slate-50" />
+              </div>
+              
+              {/* Floating elements */}
+              <div className="absolute top-1/4 -right-8 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 animate-bounce hover:animate-none transition-all cursor-default z-20" style={{ animationDuration: '3s' }}>
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center"><CheckCircle2 className="text-emerald-600" size={20}/></div>
+                <div>
+                  <p className="font-bold text-slate-800 text-sm">Target Met!</p>
+                  <p className="text-xs text-slate-500">GPA Improved</p>
+                </div>
+              </div>
+
+              <div className="absolute bottom-1/4 -left-8 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 animate-pulse hover:animate-none z-20" style={{ animationDuration: '4s' }}>
+                <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center"><Users className="text-teal-600" size={20}/></div>
+                <div>
+                  <p className="font-bold text-slate-800 text-sm">Study Group</p>
+                  <p className="text-xs text-slate-500">5 members active</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Courses / Kuppi Section */}
-      <section id="academics" className="py-24">
-        <div className="container mx-auto px-6 text-center">
-          <div className="text-emerald-500 font-bold uppercase tracking-wider mb-2">OUR POPULAR CLASSES</div>
-          <h2 className="text-4xl font-extrabold text-slate-900 mb-16">Choose Our Top Kuppi Classes</h2>
+      {/* ── Features List (Horizontal) ───────────────── */}
+      <section className="py-12 bg-white border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <p className="text-center font-bold text-sm text-emerald-600 uppercase tracking-widest mb-8">Trusted by academic achievers</p>
+          <div className="flex flex-wrap justify-center gap-6 lg:gap-12">
+            {[
+              { icon: BookOpen, text: 'Resource Hub', color: 'text-emerald-500', bg: 'bg-emerald-50' },
+              { icon: BrainCircuit, text: 'Quiz Master', color: 'text-teal-500', bg: 'bg-teal-50' },
+              { icon: Users, text: 'Kuppi Classes', color: 'text-blue-500', bg: 'bg-blue-50' },
+              { icon: Star, text: 'Leaderboards', color: 'text-amber-500', bg: 'bg-amber-50' }
+            ].map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3 px-6 py-3 rounded-full bg-slate-50 border border-slate-100 hover:border-emerald-200 transition-colors cursor-default">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${item.bg}`}>
+                  <item.icon size={16} className={item.color} />
+                </div>
+                <span className="font-bold text-slate-700">{item.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Main Features Grid ────────────────────────── */}
+      <section id="features" className="py-24 px-6 bg-slate-50/50 relative">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <span className="text-emerald-500 font-bold uppercase tracking-wider text-sm mb-2 block">Our Services</span>
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900">Find The <span className="text-emerald-500">Best Features</span> Form UNIcollab</h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              { icon: Users, title: 'Kuppi Classes', desc: 'Book peer-to-peer tutoring sessions with top-performing students in your faculty. Learn efficiently from those who aced it.' },
+              { icon: BookOpen, title: 'Resource Sharing', desc: 'Access and share lecture notes, past papers, slides, and comprehensive study materials across all semesters.' },
+              { icon: BrainCircuit, title: 'Interactive Quizzes', desc: 'Test your knowledge with curated quizzes by year and semester. Track your scores and climb the leaderboard.' },
+              { icon: MapPin, title: 'Study Groups', desc: 'Form or join dedicated study groups to prepare for final exams or tackle difficult assignments collaboratively.' },
+              { icon: Award, title: 'Achievement Tracking', desc: 'Monitor your academic progress through quiz scores and completed modules over the academic years.' },
+              { icon: FileIcon, title: 'Real-time Updates', desc: 'Get direct access to the latest uploaded resources, lecture slides, and newly scheduled Kuppi sessions.' }
+            ].map(({ icon: Icon, title, desc }, idx) => (
+              <div key={idx} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-emerald-900/5 transition-all group">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-emerald-50 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                  <Icon size={28} />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed font-medium">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Call To Action (Banner style matching image) ─ */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto bg-gradient-to-br from-emerald-500 to-teal-500 rounded-[3rem] p-12 text-center text-white relative overflow-hidden shadow-2xl shadow-emerald-500/20">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-900 opacity-20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
-            {/* Mock Card 1 */}
-            <div className="bg-white rounded-3xl shadow-sm hover:shadow-xl transition-shadow border border-slate-100 overflow-hidden group">
-              <div className="h-48 bg-slate-200 relative overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Class" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                <div className="absolute top-4 left-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">Programming</div>
-              </div>
-              <div className="p-8">
-                <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
-                  <span className="flex items-center text-amber-400">★★★★★</span>
-                  <span>(4.8)</span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-emerald-600 transition-colors">Advanced Web Development React & Node</h3>
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs">JD</div>
-                    <span className="text-sm font-medium text-slate-700">John Doe</span>
-                  </div>
-                  <span className="font-bold text-emerald-600">Free</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Mock Card 2 */}
-            <div className="bg-white rounded-3xl shadow-sm hover:shadow-xl transition-shadow border border-slate-100 overflow-hidden group">
-              <div className="h-48 bg-slate-200 relative overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Class" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                <div className="absolute top-4 left-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">Database</div>
-              </div>
-              <div className="p-8">
-                <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
-                  <span className="flex items-center text-amber-400">★★★★☆</span>
-                  <span>(4.5)</span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-emerald-600 transition-colors">Database Management Systems Crash Course</h3>
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs">AS</div>
-                    <span className="text-sm font-medium text-slate-700">Alice Smith</span>
-                  </div>
-                  <span className="font-bold text-emerald-600">Free</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Mock Card 3 */}
-            <div className="bg-white rounded-3xl shadow-sm hover:shadow-xl transition-shadow border border-slate-100 overflow-hidden group">
-              <div className="h-48 bg-slate-200 relative overflow-hidden">
-                <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Class" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                <div className="absolute top-4 left-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">Mathematics</div>
-              </div>
-              <div className="p-8">
-                <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
-                  <span className="flex items-center text-amber-400">★★★★★</span>
-                  <span>(4.9)</span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-emerald-600 transition-colors">Discrete Mathematics Mid-Term Revision</h3>
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs">RW</div>
-                    <span className="text-sm font-medium text-slate-700">Robert Wilson</span>
-                  </div>
-                  <span className="font-bold text-emerald-600">Free</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <div className="mt-12">
-            <Link to="/register" className="inline-block bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-bold px-8 py-4 rounded-full transition-colors">
-              View All Classes
+          <div className="relative z-10">
+            <h2 className="text-4xl font-black mb-6">One Platform For True Academic Success</h2>
+            <p className="text-emerald-50 text-lg max-w-2xl mx-auto mb-10 font-medium">
+              UNIcollab bridges the gap between institutional learning and collaborative study. Our platform empowers students to share knowledge, find study partners, and prepare efficiently.
+            </p>
+            <Link to="/register"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-emerald-600 bg-white hover:bg-slate-50 transition-all transform hover:-translate-y-1 shadow-lg cursor-pointer">
+              Join UNIcollab Today
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-[#0B1A2C] text-slate-400 py-16">
-        <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="text-emerald-500 text-3xl">🎓</span>
-              <div className="font-bold text-2xl text-white tracking-tight">
-                UNI<span className="text-emerald-500">collab</span>
-              </div>
+      {/* Feedbacks Section */}
+      {feedbacks.length > 0 && (
+        <section className="py-24 bg-slate-50">
+          <div className="container mx-auto px-6 text-center">
+            <div className="text-emerald-500 font-bold uppercase tracking-wider mb-2">TESTIMONIALS</div>
+            <h2 className="text-4xl font-extrabold text-slate-900 mb-12">What Our Students Say</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
+              {feedbacks.map(fb => (
+                <div key={fb._id} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 transition-transform hover:-translate-y-1 hover:shadow-md flex flex-col">
+                  <div className="flex gap-1 text-amber-400 mb-4 text-xl">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i}>{i < fb.rating ? '★' : '☆'}</span>
+                    ))}
+                  </div>
+                  <p className="text-slate-600 mb-6 italic leading-relaxed flex-1">"{fb.comment}"</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-slate-50">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-600">
+                      {fb.user?.name?.charAt(0) || 'U'}
+                    </div>
+                    <div className="font-bold text-slate-900">{fb.user?.name || 'Anonymous Student'}</div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <p className="mb-6 text-sm leading-relaxed">
-              Your gateway to academic success. Connecting students to resources, peer tutoring, and collaborative study groups.
-            </p>
           </div>
-          
+        </section>
+      )}
+
+      {/* ── Footer ───────────────────────────────────── */}
+      <footer className="bg-slate-900 pt-16 pb-8 px-6 text-slate-300">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+          <div className="col-span-1 md:col-span-1 border-b md:border-b-0 border-slate-800 pb-8 md:pb-0">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-400 to-teal-400">
+                <BookMarked size={16} color="white" />
+              </div>
+              <span className="font-black text-white text-xl">UNI<span className="text-emerald-400">collab</span></span>
+            </div>
+            <p className="text-slate-400 text-sm leading-relaxed font-medium">Your gateway to academic excellence through collaborative learning and shared resources.</p>
+          </div>
           <div>
-            <h4 className="text-white font-bold mb-6">Quick Links</h4>
-            <ul className="space-y-3 text-sm">
-              <li><a href="#" className="hover:text-emerald-500 transition-colors">Home</a></li>
-              <li><a href="#" className="hover:text-emerald-500 transition-colors">Features</a></li>
-              <li><a href="#" className="hover:text-emerald-500 transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-emerald-500 transition-colors">Contact</a></li>
+            <h4 className="text-sm font-bold text-white mb-6 uppercase tracking-wider">Features</h4>
+            <ul className="space-y-4 text-sm font-medium text-slate-400">
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Kuppi Classes</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Resource Sharing</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Study Groups</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Quiz Zone</a></li>
             </ul>
           </div>
-          
           <div>
-            <h4 className="text-white font-bold mb-6">Academics</h4>
-            <ul className="space-y-3 text-sm">
-              <li><a href="#" className="hover:text-emerald-500 transition-colors">Kuppi Classes</a></li>
-              <li><a href="#" className="hover:text-emerald-500 transition-colors">Resource Center</a></li>
-              <li><a href="#" className="hover:text-emerald-500 transition-colors">Study Groups</a></li>
-              <li><a href="#" className="hover:text-emerald-500 transition-colors">Skill Assessments</a></li>
+            <h4 className="text-sm font-bold text-white mb-6 uppercase tracking-wider">Company</h4>
+            <ul className="space-y-4 text-sm font-medium text-slate-400">
+              <li><a href="#about" className="hover:text-emerald-400 transition-colors">About Us</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Careers</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Privacy Policy</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Terms of Service</a></li>
             </ul>
           </div>
-          
           <div>
-            <h4 className="text-white font-bold mb-6">Contact Us</h4>
-            <ul className="space-y-3 text-sm">
-              <li className="flex gap-3">
-                <span className="text-emerald-500">📍</span>
-                <span>Sri Lanka Technology Campus,<br/>Padukka, Sri Lanka</span>
-              </li>
-              <li className="flex gap-3 mt-4">
-                <span className="text-emerald-500">✉️</span>
-                <span>support@unicollab.edu</span>
-              </li>
+            <h4 className="text-sm font-bold text-white mb-6 uppercase tracking-wider">Contact</h4>
+            <ul className="space-y-4 text-sm font-medium text-slate-400">
+              <li className="flex items-start gap-3"><MapPin size={16} className="mt-0.5 shrink-0 text-emerald-400" /> Sri Lanka Technology Campus</li>
+              <li className="flex items-center gap-3"><Mail size={16} className="shrink-0 text-emerald-400" /> hello@unicollab.edu</li>
             </ul>
           </div>
         </div>
-        
-        <div className="container mx-auto px-6 mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between text-sm">
+        <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs font-medium text-slate-500">
           <p>© {new Date().getFullYear()} UNIcollab. All rights reserved.</p>
-          <div className="flex gap-4 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+          <div className="flex gap-6 mt-4 sm:mt-0">
+            <a href="#" className="hover:text-white transition-colors">FB</a>
+            <a href="#" className="hover:text-white transition-colors">TW</a>
+            <a href="#" className="hover:text-white transition-colors">IG</a>
           </div>
         </div>
       </footer>
     </div>
   );
-};
-
-export default Landing;
+}

@@ -31,9 +31,9 @@ app.get('/health', (req, res) => {
     gateway: '✅ Running',
     port: process.env.PORT || 5000,
     services: {
-      'auth-service':           `${process.env.AUTH_SERVICE_URL}/api/auth`,
-      'kuppi-class-service':    `${process.env.VACANCY_SERVICE_URL}/api/kuppi-class`,
-      'resource-sharing-service': `${process.env.RESOURCE_SERVICE_URL}/api/resources`,
+      'auth-service':               `${process.env.AUTH_SERVICE_URL}/api/auth`,
+      'kuppi-class-service':        `${process.env.VACANCY_SERVICE_URL}/api/kuppi-class`,
+      'resource-sharing-service':   `${process.env.RESOURCE_SERVICE_URL}/api/resources`,
       'study-group-service':        `${process.env.STUDY_GROUP_SERVICE_URL}/api/study-groups`,
     }
   });
@@ -95,7 +95,19 @@ app.use('/api/study-groups', createProxyMiddleware({
   }
 }));
 
-// 404 handler
+// Quiz Service → http://localhost:5005
+['api/quizzes', 'api/questions', 'api/attempts', 'api/leaderboard', 'api/subjects'].forEach(route => {
+  app.use(`/${route}`, createProxyMiddleware({
+    target: process.env.QUIZ_SERVICE_URL + `/${route}`,
+    changeOrigin: true,
+    on: {
+      error: (err, req, res) => {
+        res.status(503).json({ message: 'Quiz service unavailable' });
+      }
+    }
+  }));
+});
+
 // 404 handler
 app.use('*splat', (req, res) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });
@@ -111,6 +123,7 @@ app.listen(PORT, () => {
   /api/kuppi-class  → Kuppi Class Service   (${process.env.VACANCY_SERVICE_URL})
   /api/resources     → Resource Service      (${process.env.RESOURCE_SERVICE_URL})
   /api/study-groups → Study Group Service   (${process.env.STUDY_GROUP_SERVICE_URL})
+  /api/quizzes      → Quiz Service          (${process.env.QUIZ_SERVICE_URL})
 ─────────────────────────────────────
   `);
 });
