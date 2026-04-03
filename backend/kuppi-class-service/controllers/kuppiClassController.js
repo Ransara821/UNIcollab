@@ -49,6 +49,11 @@ const getKuppiClassById = async (req, res) => {
 // POST /api/kuppi-class  (protect + recognizedOnly)
 const createKuppiClass = async (req, res) => {
   try {
+    // Ensure user is authenticated (should be caught by protect middleware, but double-check)
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: 'User must be authenticated to create a session' });
+    }
+
     const { title, subject, academicYear, description, location, sessionDate, postedBy, capacity } = req.body;
     const errors = {};
 
