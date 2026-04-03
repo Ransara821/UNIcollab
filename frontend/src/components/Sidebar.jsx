@@ -30,22 +30,8 @@ export default function Sidebar() {
   };
 
   return (
-<<<<<<< Updated upstream
     <>
       <div className="h-screen w-64 flex flex-col fixed left-0 top-0 z-50 bg-white border-r border-slate-200/80 shadow-[4px_0_24px_rgb(0,0,0,0.02)]">
-=======
-    <div className="h-screen w-64 bg-white border-r border-slate-100 text-slate-800 flex flex-col fixed left-0 top-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-50">
-      {/* Logo */}
-      <div className="p-6 border-b border-slate-100">
-        <button onClick={() => navigate('/')} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <span className="text-emerald-500 text-2xl">🎓</span>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            UNI<span className="text-emerald-500">collab</span>
-          </h1>
-        </button>
-        <p className="text-slate-400 text-sm mt-1 font-medium">Student Portal</p>
-      </div>
->>>>>>> Stashed changes
 
         {/* Logo & Brand */}
         <div className="px-6 py-8">

@@ -53,6 +53,16 @@ export const getStudySuggestions = () => axios.get(`${API_URL}/study-groups/matc
 // ── Study Groups: Pool ──
 export const getGrouplessPool = () => axios.get(`${API_URL}/study-groups/pool`, authHeaders());
 
+// ── Study Groups: Announcements ──
+export const getAnnouncements    = (groupId)       => axios.get(`${API_URL}/study-groups/${groupId}/announcements`, authHeaders());
+export const createAnnouncement  = (groupId, data) => axios.post(`${API_URL}/study-groups/${groupId}/announcements`, data, authHeaders());
+export const deleteAnnouncement  = (groupId, annId) => axios.delete(`${API_URL}/study-groups/${groupId}/announcements/${annId}`, authHeaders());
+
+// ── Study Groups: Ratings ──
+export const submitRating    = (groupId, data) => axios.post(`${API_URL}/study-groups/${groupId}/ratings`, data, authHeaders());
+export const getGroupRatings = (groupId)       => axios.get(`${API_URL}/study-groups/${groupId}/ratings`, authHeaders());
+export const getMyRatings    = ()              => axios.get(`${API_URL}/study-groups/ratings/me`, authHeaders());
+
 // Feedback
 export const submitFeedback = (data) => axios.post(`${API_URL}/auth/feedback`, data, authHeaders());
 export const getPublicFeedbacks = () => axios.get(`${API_URL}/auth/feedback/public`);

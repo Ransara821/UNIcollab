@@ -4,6 +4,8 @@ import {
   getStudyGroups, createStudyGroup, getMyGroup, toggleGroupStatus, updateSkillsNeeded, updateStudyGroup,
   sendJoinRequest, sendGroupInvite, getMyStudyRequests, getGroupRequests, updateJoinRequest,
   getStudySuggestions, getGrouplessPool, getMyStudyProfile, saveStudyProfile,
+  getAnnouncements, createAnnouncement, deleteAnnouncement,
+  submitRating, getGroupRatings, getMyRatings,
 } from '../../services/api';
 
 const TABS = [
@@ -62,6 +64,15 @@ export default function StudyGroupFinder() {
   const [editingGroup, setEditingGroup]   = useState(false);
   const [editGroup, setEditGroup]         = useState({});
   const [editSkillInput, setEditSkillInput] = useState('');
+
+  // Announcements
+  const [announcements, setAnnouncements]           = useState([]);
+  const [annForm, setAnnForm]                       = useState({ content: '', type: 'update' });
+
+  // Ratings
+  const [groupRatings, setGroupRatings]   = useState([]);   // ratings I submitted for my current group
+  const [ratingForms, setRatingForms]     = useState({});   // { userId: { score, comment } }
+  const [myRatingsData, setMyRatingsData] = useState(null); // { ratings, average, count }
 
   const setL = (k, v) => setLoading(p => ({ ...p, [k]: v }));
   const setA = (k, v) => setActLoad(p => ({ ...p, [k]: v }));
@@ -134,12 +145,67 @@ export default function StudyGroupFinder() {
         const rr = await getGroupRequests(r.data.group._id);
         setGroupReqs(rr.data);
       }
+      if (r.data.group) {
+        const ar = await getAnnouncements(r.data.group._id);
+        setAnnouncements(ar.data);
+        if (r.data.group.status === 'closed') {
+          const gr = await getGroupRatings(r.data.group._id);
+          setGroupRatings(gr.data);
+          const forms = {};
+          (r.data.group.members || []).forEach(m => {
+            const existing = gr.data.find(rt => rt.toUserId === m.userId);
+            forms[m.userId] = { score: existing?.score || 0, comment: existing?.comment || '' };
+          });
+          setRatingForms(forms);
+        }
+      }
     } catch { /* */ } finally { setL('myGroup', false); }
   }, []);
+
+  const fetchAnnouncements = useCallback(async (groupId) => {
+    try { const r = await getAnnouncements(groupId); setAnnouncements(r.data); } catch { /* */ }
+  }, []);
+
+  const handlePostAnnouncement = async () => {
+    if (!annForm.content.trim()) return;
+    setA('postAnn', true);
+    try {
+      await createAnnouncement(myGroup._id, annForm);
+      setAnnForm({ content: '', type: 'update' });
+      fetchAnnouncements(myGroup._id);
+      notify('Announcement posted!');
+    } catch (e) { notify(e.response?.data?.message || 'Failed to post', true); }
+    finally { setA('postAnn', false); }
+  };
+
+  const handleDeleteAnnouncement = async (annId) => {
+    setA(`delAnn_${annId}`, true);
+    try {
+      await deleteAnnouncement(myGroup._id, annId);
+      setAnnouncements(prev => prev.filter(a => a._id !== annId));
+    } catch (e) { notify(e.response?.data?.message || 'Failed to delete', true); }
+    finally { setA(`delAnn_${annId}`, false); }
+  };
+
+  const handleSubmitRating = async (toUserId) => {
+    const form = ratingForms[toUserId];
+    if (!form?.score) return notify('Please select a star rating first', true);
+    setA(`rate_${toUserId}`, true);
+    try {
+      await submitRating(myGroup._id, { toUserId, score: form.score, comment: form.comment });
+      notify('Rating submitted!');
+      const gr = await getGroupRatings(myGroup._id);
+      setGroupRatings(gr.data);
+      const mr = await getMyRatings();
+      setMyRatingsData(mr.data);
+    } catch (e) { notify(e.response?.data?.message || 'Failed to submit rating', true); }
+    finally { setA(`rate_${toUserId}`, false); }
+  };
 
   useEffect(() => {
     fetchGroups(); fetchSuggestions(); fetchProfile();
     fetchMyRequests(); fetchPool(); fetchMyGroup();
+    getMyRatings().then(r => setMyRatingsData(r.data)).catch(() => {});
   }, []);
 
   useEffect(() => { if (activeTab === 'discover') fetchGroups(); },
@@ -1042,6 +1108,140 @@ export default function StudyGroupFinder() {
                 </div>
               </div>
 
+              {/* ── Announcement Board ── */}
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <h3 className="font-extrabold text-slate-900">Announcement Board</h3>
+                  <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                    {announcements.length} post{announcements.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                {/* Leader compose form */}
+                {myGroupRole === 'leader' && (
+                  <div className="mb-5 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                    <div className="flex gap-2">
+                      {['update', 'reminder'].map(t => (
+                        <button key={t} onClick={() => setAnnForm(p => ({ ...p, type: t }))}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all ${
+                            annForm.type === t
+                              ? t === 'reminder' ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'
+                              : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-300'
+                          }`}>
+                          {t === 'update' ? '📢 Update' : '⏰ Reminder'}
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      rows={3}
+                      placeholder="Write an announcement for your group members..."
+                      value={annForm.content}
+                      onChange={e => setAnnForm(p => ({ ...p, content: e.target.value }))}
+                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400 resize-none"
+                    />
+                    <div className="flex justify-end">
+                      <button onClick={handlePostAnnouncement} disabled={actLoad.postAnn || !annForm.content.trim()}
+                        className="px-5 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-600 disabled:opacity-50 transition-all">
+                        {actLoad.postAnn ? 'Posting...' : 'Post Announcement'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Feed */}
+                {announcements.length === 0 ? (
+                  <p className="text-sm text-slate-400 text-center py-6">No announcements yet</p>
+                ) : (
+                  <div className="space-y-3">
+                    {announcements.map(ann => (
+                      <div key={ann._id} className={`rounded-2xl border-2 p-4 ${
+                        ann.type === 'reminder' ? 'border-amber-100 bg-amber-50/50' : 'border-blue-100 bg-blue-50/30'
+                      }`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-base">{ann.type === 'reminder' ? '⏰' : '📢'}</span>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full capitalize ${
+                              ann.type === 'reminder' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                            }`}>{ann.type}</span>
+                            <span className="text-xs font-semibold text-slate-500">{ann.authorName}</span>
+                            <span className="text-xs text-slate-300">
+                              {new Date(ann.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          </div>
+                          {myGroupRole === 'leader' && (
+                            <button onClick={() => handleDeleteAnnouncement(ann._id)} disabled={actLoad[`delAnn_${ann._id}`]}
+                              className="text-slate-300 hover:text-red-400 font-bold text-lg leading-none shrink-0 transition-colors disabled:opacity-50"
+                              title="Delete">×</button>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{ann.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* ── Rate Your Teammates (only when project ended / group closed) ── */}
+              {myGroup.status === 'closed' && (
+                <div className="bg-white rounded-2xl border border-amber-100 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-extrabold text-slate-900">Rate Your Teammates</h3>
+                    <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">Project ended</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-4">Rate each teammate on collaboration. Scores are averaged and shown on profiles.</p>
+                  {(myGroup.members || []).filter(m => m.userId !== uid(user)).length === 0 ? (
+                    <p className="text-sm text-slate-400 text-center py-4">No other members to rate</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {(myGroup.members || []).filter(m => m.userId !== uid(user)).map(m => {
+                        const form = ratingForms[m.userId] || { score: 0, comment: '' };
+                        const submitted = groupRatings.find(r => r.toUserId === m.userId);
+                        return (
+                          <div key={m.userId} className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-9 h-9 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold text-sm">
+                                {(m.name || 'M')[0].toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-slate-800">{m.name}</p>
+                                {submitted && (
+                                  <p className="text-xs text-emerald-600 font-semibold">✓ Rated {submitted.score}/5</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 mb-3">
+                              {[1, 2, 3, 4, 5].map(star => (
+                                <button key={star}
+                                  onClick={() => setRatingForms(p => ({ ...p, [m.userId]: { ...p[m.userId], score: star } }))}
+                                  className={`text-2xl transition-transform hover:scale-110 leading-none ${form.score >= star ? 'text-amber-400' : 'text-slate-200 hover:text-amber-200'}`}>
+                                  ★
+                                </button>
+                              ))}
+                              {form.score > 0 && (
+                                <span className="ml-2 text-sm font-bold text-slate-500">{form.score}/5</span>
+                              )}
+                            </div>
+                            <textarea
+                              rows={2}
+                              placeholder="Optional comment (e.g. Great communicator, always on time)..."
+                              value={form.comment}
+                              onChange={e => setRatingForms(p => ({ ...p, [m.userId]: { ...p[m.userId], comment: e.target.value } }))}
+                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-600 focus:outline-none focus:border-emerald-400 resize-none mb-2"
+                            />
+                            <button
+                              onClick={() => handleSubmitRating(m.userId)}
+                              disabled={actLoad[`rate_${m.userId}`] || !form.score}
+                              className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold hover:bg-emerald-600 disabled:opacity-50 transition-all">
+                              {actLoad[`rate_${m.userId}`] ? 'Submitting...' : submitted ? 'Update Rating' : 'Submit Rating'}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {myGroupRole === 'leader' && (
                 <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                   <div className="flex items-center gap-2 mb-4">
@@ -1149,6 +1349,32 @@ export default function StudyGroupFinder() {
                 </div>
               )}
             </>
+          )}
+
+          {/* ── My Collaboration Rating (always visible in MyGroup tab) ── */}
+          {myRatingsData && myRatingsData.count > 0 && (
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mt-4">
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="font-extrabold text-slate-900">My Collaboration Rating</h3>
+                <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">across all projects</span>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-5xl font-extrabold text-amber-400 leading-none">{myRatingsData.average}</p>
+                  <p className="text-xs text-slate-400 mt-1">avg score</p>
+                </div>
+                <div>
+                  <div className="flex gap-0.5 mb-1">
+                    {[1, 2, 3, 4, 5].map(s => (
+                      <span key={s} className={`text-2xl leading-none ${myRatingsData.average >= s ? 'text-amber-400' : 'text-slate-200'}`}>★</span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Based on {myRatingsData.count} rating{myRatingsData.count !== 1 ? 's' : ''} from past projects
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       )}
