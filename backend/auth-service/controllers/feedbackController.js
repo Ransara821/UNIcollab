@@ -3,16 +3,36 @@ const Feedback = require('../models/Feedback');
 // @POST /api/auth/feedback
 exports.submitFeedback = async (req, res) => {
     try {
-        const { rating, comment } = req.body;
+        const {
+            category,
+            targetAreas,
+            ratings,
+            painPoints,
+            featureSuggestion,
+            contactPermission,
+            isAnonymous,
+        } = req.body;
 
         if (!req.user || !req.user.id) {
             return res.status(401).json({ message: 'User not authenticated' });
         }
 
+        // Derive legacy fields for backward compatibility
+        const overallRating = ratings?.overallSatisfaction || 3;
+        const legacyComment = painPoints || featureSuggestion || '';
+
         const feedback = await Feedback.create({
             user: req.user.id,
-            rating,
-            comment
+            category: category || 'appreciation',
+            targetAreas: targetAreas || [],
+            ratings: ratings || {},
+            painPoints: painPoints || '',
+            featureSuggestion: featureSuggestion || '',
+            contactPermission: !!contactPermission,
+            isAnonymous: !!isAnonymous,
+            // legacy
+            rating: overallRating,
+            comment: legacyComment,
         });
 
         res.status(201).json({ message: 'Feedback submitted successfully', feedback });
@@ -24,8 +44,7 @@ exports.submitFeedback = async (req, res) => {
 // @GET /api/auth/feedback/public
 exports.getPublicFeedbacks = async (req, res) => {
     try {
-        // Get latest 6 feedbacks, populating user name
-        const feedbacks = await Feedback.find()
+        const feedbacks = await Feedback.find({ isAnonymous: false })
             .sort({ createdAt: -1 })
             .limit(6)
             .populate('user', 'name');
@@ -38,7 +57,6 @@ exports.getPublicFeedbacks = async (req, res) => {
 // @GET /api/auth/feedback/report
 exports.getFeedbackReport = async (req, res) => {
     try {
-        // Admins get all records populated with name and email
         const feedbacks = await Feedback.find()
             .sort({ createdAt: -1 })
             .populate('user', 'name email');
