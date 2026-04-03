@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
-  getStudyGroups, createStudyGroup, getMyGroup, toggleGroupStatus, updateSkillsNeeded, updateStudyGroup,
+  getStudyGroups, createStudyGroup, getMyGroup, toggleGroupStatus, closeStudyGroup, updateSkillsNeeded, updateStudyGroup,
   sendJoinRequest, sendGroupInvite, getMyStudyRequests, getGroupRequests, updateJoinRequest,
   getStudySuggestions, getGrouplessPool, getMyStudyProfile, saveStudyProfile,
   getAnnouncements, createAnnouncement, deleteAnnouncement,
@@ -70,9 +70,10 @@ export default function StudyGroupFinder() {
   const [annForm, setAnnForm]                       = useState({ content: '', type: 'update' });
 
   // Ratings
-  const [groupRatings, setGroupRatings]   = useState([]);   // ratings I submitted for my current group
-  const [ratingForms, setRatingForms]     = useState({});   // { userId: { score, comment } }
-  const [myRatingsData, setMyRatingsData] = useState(null); // { ratings, average, count }
+  const [groupRatings, setGroupRatings]       = useState([]);   // ratings I submitted for my current group
+  const [ratingForms, setRatingForms]         = useState({});   // { userId: { score, comment } }
+  const [myRatingsData, setMyRatingsData]     = useState(null); // { ratings, average, count }
+  const [confirmEndProject, setConfirmEndProject] = useState(false);
 
   const setL = (k, v) => setLoading(p => ({ ...p, [k]: v }));
   const setA = (k, v) => setActLoad(p => ({ ...p, [k]: v }));
@@ -265,6 +266,24 @@ export default function StudyGroupFinder() {
   const handleToggleStatus = async () => {
     try { await toggleGroupStatus(myGroup._id); fetchMyGroup(); }
     catch (e) { notify(e.response?.data?.message || 'Failed', true); }
+  };
+
+  const handleEndProject = async () => {
+    setA('endProject', true);
+    try {
+      await closeStudyGroup(myGroup._id);
+      setConfirmEndProject(false);
+      notify('Project ended. Members can now rate each other!');
+      fetchMyGroup();
+      const gr = await getGroupRatings(myGroup._id);
+      setGroupRatings(gr.data);
+      const forms = {};
+      (myGroup.members || []).forEach(m => {
+        forms[m.userId] = { score: 0, comment: '' };
+      });
+      setRatingForms(forms);
+    } catch (e) { notify(e.response?.data?.message || 'Failed', true); }
+    finally { setA('endProject', false); }
   };
 
   const handleUpdateSkillsNeeded = async () => {
@@ -995,23 +1014,58 @@ export default function StudyGroupFinder() {
                   ))}
                 </div>
                 {myGroupRole === 'leader' && (
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap gap-2">
-                    <button onClick={handleToggleStatus}
-                      className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${myGroup.status === 'open' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}>
-                      {myGroup.status === 'open' ? '🔒 Set Full' : '🔓 Set Open'}
-                    </button>
-                    <button onClick={openEditGroup}
-                      className="px-4 py-2 rounded-xl text-sm font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all">
-                      Edit Group
-                    </button>
-                    <div className="flex gap-2 flex-1 min-w-44">
-                      <input type="text" placeholder="Post skills needed..." value={skillsNeededInput}
-                        onChange={e => setSkillsNeededInput(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleUpdateSkillsNeeded()}
-                        className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400" />
-                      <button onClick={handleUpdateSkillsNeeded}
-                        className="px-3 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-600">Post</button>
+                  <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {myGroup.status !== 'closed' && (
+                        <button onClick={handleToggleStatus}
+                          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${myGroup.status === 'open' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}>
+                          {myGroup.status === 'open' ? '🔒 Set Full' : '🔓 Set Open'}
+                        </button>
+                      )}
+                      {myGroup.status !== 'closed' && (
+                        <button onClick={openEditGroup}
+                          className="px-4 py-2 rounded-xl text-sm font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all">
+                          Edit Group
+                        </button>
+                      )}
+                      {myGroup.status !== 'closed' && (
+                        <button onClick={() => setConfirmEndProject(true)}
+                          className="px-4 py-2 rounded-xl text-sm font-bold bg-slate-800 text-white hover:bg-black transition-all">
+                          🏁 End Project
+                        </button>
+                      )}
                     </div>
+
+                    {/* End Project confirmation */}
+                    {confirmEndProject && (
+                      <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+                        <p className="text-sm font-bold text-red-700 mb-1">End this project?</p>
+                        <p className="text-xs text-red-500 mb-4">
+                          This is permanent. The group will be closed and members will be able to rate each other.
+                        </p>
+                        <div className="flex gap-2">
+                          <button onClick={handleEndProject} disabled={actLoad.endProject}
+                            className="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 disabled:opacity-50 transition-all">
+                            {actLoad.endProject ? 'Ending...' : 'Yes, End Project'}
+                          </button>
+                          <button onClick={() => setConfirmEndProject(false)}
+                            className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {myGroup.status !== 'closed' && (
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="Post skills needed..." value={skillsNeededInput}
+                          onChange={e => setSkillsNeededInput(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleUpdateSkillsNeeded()}
+                          className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400" />
+                        <button onClick={handleUpdateSkillsNeeded}
+                          className="px-3 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-600">Post</button>
+                      </div>
+                    )}
                   </div>
                 )}
 

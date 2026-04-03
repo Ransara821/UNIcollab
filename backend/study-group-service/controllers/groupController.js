@@ -74,7 +74,22 @@ exports.toggleStatus = async (req, res) => {
     const group = await StudyGroup.findById(req.params.id);
     if (!group) return res.status(404).json({ message: 'Group not found' });
     if (group.leader !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
+    if (group.status === 'closed') return res.status(400).json({ message: 'Project has ended — status cannot be changed' });
     group.status = group.status === 'open' ? 'full' : 'open';
+    await group.save();
+    res.json(group);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.endProject = async (req, res) => {
+  try {
+    const group = await StudyGroup.findById(req.params.id);
+    if (!group) return res.status(404).json({ message: 'Group not found' });
+    if (group.leader !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
+    if (group.status === 'closed') return res.status(400).json({ message: 'Project has already ended' });
+    group.status = 'closed';
     await group.save();
     res.json(group);
   } catch (err) {
