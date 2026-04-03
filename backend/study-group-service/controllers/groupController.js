@@ -82,6 +82,29 @@ exports.toggleStatus = async (req, res) => {
   }
 };
 
+exports.updateGroup = async (req, res) => {
+  try {
+    const group = await StudyGroup.findById(req.params.id);
+    if (!group) return res.status(404).json({ message: 'Group not found' });
+    if (group.leader !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
+
+    const { name, groupNumber, subject, description, requiredSkills, workingStyle, maxSize, deadline } = req.body;
+    if (name)           group.name           = name;
+    if (groupNumber !== undefined) group.groupNumber = groupNumber;
+    if (subject !== undefined)     group.subject     = subject;
+    if (description !== undefined) group.description = description;
+    if (requiredSkills) { group.requiredSkills = requiredSkills; group.skillVector = buildSkillVector(requiredSkills); }
+    if (workingStyle)   group.workingStyle   = workingStyle;
+    if (maxSize)        group.maxSize        = maxSize;
+    if (deadline !== undefined) group.deadline = deadline ? new Date(deadline) : undefined;
+
+    await group.save();
+    res.json(group);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.updateSkillsNeeded = async (req, res) => {
   try {
     const group = await StudyGroup.findById(req.params.id);

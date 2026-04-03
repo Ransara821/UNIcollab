@@ -45,6 +45,7 @@ export const createStudyGroup    = (data)   => axios.post(`${API_URL}/study-grou
 export const getStudyGroup       = (id)     => axios.get(`${API_URL}/study-groups/${id}`, authHeaders());
 export const getMyGroup          = ()       => axios.get(`${API_URL}/study-groups/my`, authHeaders());
 export const joinStudyGroup      = (id)     => axios.post(`${API_URL}/study-groups/${id}/join`, {}, authHeaders()); // Added from main
+export const updateStudyGroup    = (id, data) => axios.patch(`${API_URL}/study-groups/${id}`, data, authHeaders());
 export const toggleGroupStatus   = (id)     => axios.patch(`${API_URL}/study-groups/${id}/status`, {}, authHeaders());
 export const updateSkillsNeeded  = (id, data) => axios.patch(`${API_URL}/study-groups/${id}/skills-needed`, data, authHeaders());
 
@@ -60,6 +61,16 @@ export const getStudySuggestions = () => axios.get(`${API_URL}/study-groups/matc
 
 // ── Study Groups: Pool ──
 export const getGrouplessPool = () => axios.get(`${API_URL}/study-groups/pool`, authHeaders());
+
+// ── Study Groups: Announcements ──
+export const getAnnouncements    = (groupId)       => axios.get(`${API_URL}/study-groups/${groupId}/announcements`, authHeaders());
+export const createAnnouncement  = (groupId, data) => axios.post(`${API_URL}/study-groups/${groupId}/announcements`, data, authHeaders());
+export const deleteAnnouncement  = (groupId, annId) => axios.delete(`${API_URL}/study-groups/${groupId}/announcements/${annId}`, authHeaders());
+
+// ── Study Groups: Ratings ──
+export const submitRating    = (groupId, data) => axios.post(`${API_URL}/study-groups/${groupId}/ratings`, data, authHeaders());
+export const getGroupRatings = (groupId)       => axios.get(`${API_URL}/study-groups/${groupId}/ratings`, authHeaders());
+export const getMyRatings    = ()              => axios.get(`${API_URL}/study-groups/ratings/me`, authHeaders());
 
 // Feedback
 export const submitFeedback = (data) => axios.post(`${API_URL}/auth/feedback`, data, authHeaders());
