@@ -54,10 +54,79 @@ function SessionFormModal({ title, initialValues = EMPTY_FORM, filterOptions, on
   const [form, setForm]         = useState({ ...EMPTY_FORM, ...initialValues });
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr]           = useState('');
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const [errors, setErrors]     = useState({});
+  const set = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    if (errors[k]) setErrors(e => ({ ...e, [k]: '' }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Title validation
+    if (!form.title || !form.title.trim()) {
+      newErrors.title = 'Title is required';
+    }
+
+    // Subject validation
+    if (!form.subject || !form.subject.trim()) {
+      newErrors.subject = 'Subject is required';
+    }
+
+    // Academic Year validation
+    if (!form.academicYear || !form.academicYear.trim()) {
+      newErrors.academicYear = 'Academic Year is required';
+    }
+
+    // Date validation
+    if (!form.sessionDate) {
+      newErrors.sessionDate = 'Date & Time is required';
+    } else {
+      const selectedDate = new Date(form.sessionDate);
+      const now = new Date();
+      if (selectedDate < now) {
+        newErrors.sessionDate = 'Date cannot be in the past';
+      }
+    }
+
+    // Capacity validation
+    if (!form.capacity) {
+      newErrors.capacity = 'Capacity is required';
+    } else {
+      const capacityNum = Number(form.capacity);
+      if (isNaN(capacityNum) || capacityNum < 1 || capacityNum > 200) {
+        newErrors.capacity = 'Capacity must be between 1 and 200';
+      }
+    }
+
+    // Location validation
+    if (!form.location || !form.location.trim()) {
+      newErrors.location = 'Location is required';
+    }
+
+    // Your Name validation
+    if (!form.postedBy || !form.postedBy.trim()) {
+      newErrors.postedBy = 'Your Name is required';
+    }
+
+    // Description validation
+    if (!form.description || !form.description.trim()) {
+      newErrors.description = 'Description is required';
+    } else if (form.description.trim().length <= 10) {
+      newErrors.description = 'Description must be more than 10 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setSubmitting(true); setErr('');
     try { await onSave(form); onClose(); }
     catch (e) { setErr(e.response?.data?.message || 'Operation failed.'); }
@@ -75,54 +144,65 @@ function SessionFormModal({ title, initialValues = EMPTY_FORM, filterOptions, on
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Title *</label>
-            <input required value={form.title} onChange={e => set('title', e.target.value)}
+            <input value={form.title} onChange={e => set('title', e.target.value)}
               placeholder="e.g. OOP Exam Prep Session"
-              className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+              className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:border-emerald-500 ${errors.title ? 'border-red-500 bg-red-50' : 'border-slate-200'}`} />
+            {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Subject *</label>
-              <select required value={form.subject} onChange={e => set('subject', e.target.value)}
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+              <select value={form.subject} onChange={e => set('subject', e.target.value)}
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:border-emerald-500 ${errors.subject ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}>
                 <option value="">Select subject</option>
                 {filterOptions.subjects.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
+              {errors.subject && <p className="text-red-500 text-xs mt-1">{errors.subject}</p>}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Academic Year *</label>
-              <select required value={form.academicYear} onChange={e => set('academicYear', e.target.value)}
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+              <select value={form.academicYear} onChange={e => set('academicYear', e.target.value)}
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:border-emerald-500 ${errors.academicYear ? 'border-red-500 bg-red-50' : 'border-slate-200'}`}>
                 <option value="">Select year</option>
                 {filterOptions.academicYears.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
+              {errors.academicYear && <p className="text-red-500 text-xs mt-1">{errors.academicYear}</p>}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Date & Time *</label>
-              <input required type="datetime-local" value={form.sessionDate} onChange={e => set('sessionDate', e.target.value)}
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+              <input type="datetime-local" value={form.sessionDate} onChange={e => set('sessionDate', e.target.value)}
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:border-emerald-500 ${errors.sessionDate ? 'border-red-500 bg-red-50' : 'border-slate-200'}`} />
+              {errors.sessionDate && <p className="text-red-500 text-xs mt-1">{errors.sessionDate}</p>}
             </div>
             <div>
               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Capacity *</label>
-              <input required type="number" min="1" max="200" value={form.capacity} onChange={e => set('capacity', e.target.value)}
+              <input type="number" min="1" max="200" value={form.capacity} onChange={e => set('capacity', e.target.value)}
                 placeholder="Max participants"
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:border-emerald-500 ${errors.capacity ? 'border-red-500 bg-red-50' : 'border-slate-200'}`} />
+              {errors.capacity && <p className="text-red-500 text-xs mt-1">{errors.capacity}</p>}
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Location</label>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Location *</label>
               <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="e.g. Lab 2, Block A"
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:border-emerald-500 ${errors.location ? 'border-red-500 bg-red-50' : 'border-slate-200'}`} />
+              {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location}</p>}
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Your Name</label>
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Your Name *</label>
               <input value={form.postedBy} onChange={e => set('postedBy', e.target.value)} placeholder="Display name"
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:border-emerald-500 ${errors.postedBy ? 'border-red-500 bg-red-50' : 'border-slate-200'}`} />
+              {errors.postedBy && <p className="text-red-500 text-xs mt-1">{errors.postedBy}</p>}
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Description</label>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Description *</label>
             <textarea rows={3} value={form.description} onChange={e => set('description', e.target.value)}
               placeholder="What will be covered?"
-              className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 resize-none" />
+              className={`mt-1 w-full px-4 py-2.5 bg-slate-50 border rounded-xl text-sm focus:outline-none focus:border-emerald-500 resize-none ${errors.description ? 'border-red-500 bg-red-50' : 'border-slate-200'}`} />
+            <div className="flex justify-between items-center mt-1">
+              <p className="text-gray-500 text-xs">{form.description.length}/10+ characters required</p>
+              {errors.description && <p className="text-red-500 text-xs">{errors.description}</p>}
+            </div>
           </div>
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose}
