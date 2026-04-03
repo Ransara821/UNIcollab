@@ -110,7 +110,7 @@ exports.getMyAttempts = async (req, res) => {
     const studentId = req.user?.id || 'temp-user';
     const attempts = await QuizAttempt.find({ studentId })
       .populate('quizId', 'title subjectId timeLimit passMark')
-      .populate('answers.questionId', 'question questionText marks explanation')
+      .populate('answers.questionId', 'question questionText marks explanation options')
       .sort('-createdAt');
     res.json({ success: true, count: attempts.length, data: attempts });
   } catch (err) {
@@ -122,7 +122,7 @@ exports.getAllAttempts = async (req, res) => {
   try {
     const attempts = await QuizAttempt.find({})
       .populate('quizId', 'title subjectId')
-      .populate('answers.questionId', 'question questionText marks explanation')
+      .populate('answers.questionId', 'question questionText marks explanation options')
       .sort('-createdAt');
     res.json({ success: true, count: attempts.length, data: attempts });
   } catch (err) {
