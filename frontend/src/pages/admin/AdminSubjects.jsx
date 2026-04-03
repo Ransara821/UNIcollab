@@ -128,14 +128,14 @@ function SubjectFormModal({ editData, onClose, onRefresh, onSuccess }) {
               <label className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2">
                 <BookOpen size={14} className={yrColors.color} /> Subject Title
               </label>
-              <input required className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3.5 outline-none focus:border-emerald-400 focus:bg-white transition-all font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400" placeholder="Enter Subject Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+              <input required className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3.5 outline-none focus:border-emerald-400 focus:bg-white transition-all font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400" placeholder="Enter Subject Name" value={form.name} onChange={e => { const val = e.target.value; if (/^[A-Za-z\s]*$/.test(val)) setForm({ ...form, name: val }) }} />
             </div>
 
             <div>
               <label className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2">
                 <Tag size={14} className={yrColors.color} /> Course Code
               </label>
-              <input required className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3.5 outline-none focus:border-emerald-400 focus:bg-white transition-all font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400" placeholder="Enter Course Code" value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} />
+              <input required className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3.5 outline-none focus:border-emerald-400 focus:bg-white transition-all font-bold text-slate-800 placeholder:font-normal placeholder:text-slate-400" placeholder="Enter Course Code" value={form.code} onChange={e => { const val = e.target.value; if (/^[A-Za-z0-9\s]*$/.test(val)) setForm({ ...form, code: val }) }} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -161,7 +161,7 @@ function SubjectFormModal({ editData, onClose, onRefresh, onSuccess }) {
               <label className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 mb-2">
                 <AlignLeft size={14} className={yrColors.color} /> Short Description
               </label>
-              <textarea className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3.5 outline-none focus:border-emerald-400 focus:bg-white transition-all font-medium text-slate-600 resize-none h-24 placeholder:font-normal placeholder:text-slate-400" placeholder="Brief outline of the course parameters..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+              <textarea className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-3.5 outline-none focus:border-emerald-400 focus:bg-white transition-all font-medium text-slate-600 resize-none h-24 placeholder:font-normal placeholder:text-slate-400" placeholder="Brief outline of the course parameters..." value={form.description} onChange={e => { const val = e.target.value; if (/^[A-Za-z\s]*$/.test(val)) setForm({ ...form, description: val }) }} />
             </div>
           </div>
 
