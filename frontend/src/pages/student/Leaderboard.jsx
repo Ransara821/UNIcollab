@@ -58,30 +58,47 @@ export default function Leaderboard() {
                <h3 className="text-xl font-bold">No ranking data found for your query.</h3>
             </div>
          ) : (
-            filtered.map((entry, idx) => (
-               <div key={`${entry.userId}-${entry.quizId}`} className="bg-white rounded-[2rem] p-6 lg:p-8 border-2 border-slate-100 shadow-sm hover:shadow-xl hover:border-amber-200 hover:-translate-y-1 transition-all flex flex-col md:flex-row items-center gap-8 group relative overflow-hidden">
-                  <div className={`absolute top-0 left-0 w-2 h-full transition-opacity ${idx === 0 ? 'bg-amber-400 opacity-100' : idx === 1 ? 'bg-slate-300 opacity-100' : idx === 2 ? 'bg-orange-500 opacity-100' : 'bg-transparent'}`} />
+            filtered.map((entry, idx) => {
+               const isRank1 = idx === 0;
+               const isRank2 = idx === 1;
+               const isRank3 = idx === 2;
+
+               // Responsive hierarchy base classes
+               const heightClass   = isRank1 ? 'md:h-[120px]' : isRank2 ? 'md:h-[100px]' : 'md:h-[90px]';
+               const badgeSize     = isRank1 ? 'w-20 h-20' : isRank2 ? 'w-[60px] h-[60px]' : 'w-[52px] h-[52px]';
+               const badgeNumber   = isRank1 ? 'text-3xl' : isRank2 ? 'text-2xl' : 'text-xl';
+               const badgeLabel    = isRank1 ? 'text-[10px]' : 'text-[9px]';
+               const nameSize      = isRank1 ? 'text-3xl' : isRank2 ? 'text-2xl' : 'text-xl';
+               const scoreSize     = isRank1 ? 'text-4xl' : isRank2 ? 'text-3xl' : 'text-2xl';
+               const scoreBoxPad   = isRank1 ? 'px-6 py-4' : isRank2 ? 'px-5 py-3' : 'px-5 py-2';
+
+               return (
+               <div key={`${entry.userId}-${entry.quizId}`} className={`bg-white rounded-3xl lg:rounded-[2rem] px-6 py-5 ${heightClass} h-auto border-2 border-slate-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:border-amber-200 transition-all flex flex-col md:flex-row items-center gap-6 group relative overflow-hidden`}>
                   
-                  <div className={`w-20 h-20 rounded-[1.5rem] flex flex-col items-center justify-center shrink-0 border-[4px] shadow-sm transform transition-transform group-hover:rotate-3 ${idx === 0 ? 'bg-amber-50 text-amber-500 border-amber-200 scale-110 shadow-amber-500/20' : idx === 1 ? 'bg-slate-50 text-slate-500 border-slate-200' : idx === 2 ? 'bg-orange-50 text-orange-500 border-orange-200' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
-                     <span className="text-[10px] font-black uppercase mb-0.5 opacity-70 tracking-widest">Rank</span>
-                     <span className="text-2xl font-black leading-none">#{idx + 1}</span>
+                  {/* Left accent color strip */}
+                  <div className={`absolute top-0 left-0 w-1.5 h-full transition-opacity ${isRank1 ? 'bg-amber-400 opacity-100' : isRank2 ? 'bg-slate-300 opacity-100' : isRank3 ? 'bg-orange-500 opacity-100' : 'bg-transparent'}`} />
+                  
+                  {/* Rank Badge */}
+                  <div className={`${badgeSize} rounded-2xl flex flex-col items-center justify-center shrink-0 border-[3px] shadow-sm transform transition-transform group-hover:rotate-3 ${isRank1 ? 'bg-amber-50 text-amber-500 border-amber-200 group-hover:scale-110 shadow-amber-500/20' : isRank2 ? 'bg-slate-50 text-slate-500 border-slate-200' : isRank3 ? 'bg-orange-50 text-orange-500 border-orange-200' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                     <span className={`${badgeLabel} font-black uppercase tracking-widest opacity-70 leading-none mb-0.5`}>Rank</span>
+                     <span className={`${badgeNumber} font-black leading-none`}>#{idx + 1}</span>
                   </div>
 
+                  {/* Student Name */}
                   <div className="flex-1 text-center md:text-left min-w-0 flex flex-col justify-center">
-                     <h3 className="text-3xl font-black text-slate-900 mb-3 truncate group-hover:text-amber-500 transition-colors tracking-tight">{entry.userName}</h3>
-                     <p className="text-sm font-bold text-indigo-600 flex items-center justify-center md:justify-start gap-2.5 truncate bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 w-fit mx-auto md:mx-0">
-                        <GraduationCap size={16} className="text-indigo-500 shrink-0"/> ID: <span className="tracking-wider">{entry.studentId || 'N/A'}</span>
-                     </p>
+                     <h3 className={`${nameSize} font-black text-slate-900 truncate group-hover:text-amber-500 transition-colors tracking-tight`}>{entry.userName}</h3>
                   </div>
 
-                  <div className="flex items-center bg-slate-50 p-6 rounded-2xl border border-slate-100/60 shadow-inner w-full md:w-auto justify-center shrink-0 min-w-[160px]">
+                  {/* Score Container */}
+                  <div className={`flex items-center bg-slate-50 rounded-2xl border border-slate-100/60 shadow-inner w-full md:w-auto justify-center shrink-0 min-w-[120px] ${scoreBoxPad}`}>
                      <div className="text-center px-2">
-                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Marks</p>
-                        <p className="text-4xl font-black text-emerald-500 drop-shadow-sm">{entry.score}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Marks</p>
+                        <p className={`${scoreSize} font-black text-emerald-500 drop-shadow-sm leading-none`}>{entry.score}</p>
                      </div>
                   </div>
                </div>
-            ))
+               );
+            })
          )}
       </div>
     </div>

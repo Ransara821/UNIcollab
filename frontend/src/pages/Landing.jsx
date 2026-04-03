@@ -2,7 +2,20 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookMarked, Users, BookOpen, BrainCircuit, ChevronRight, MapPin, Mail, ArrowRight, CheckCircle2, Star, PlayCircle, Award, File as FileIcon } from 'lucide-react';
 
+import { getPublicFeedbacks } from '../services/api';
+
 export default function Landing() {
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  useEffect(() => {
+    getPublicFeedbacks()
+      .then(res => {
+        // Show up to 3 feedbacks
+        setFeedbacks(res.data.slice(0, 3));
+      })
+      .catch(err => console.error("Could not load feedbacks:", err));
+  }, []);
+
   return (
     <div className="min-h-screen font-sans text-slate-800 bg-white selection:bg-emerald-100 selection:text-emerald-900">
 
@@ -92,7 +105,7 @@ export default function Landing() {
               <div className="absolute inset-0 bg-gradient-to-tr from-teal-400 to-emerald-400 rounded-full shadow-2xl shadow-emerald-900/20 translate-y-8 -z-10 blur-xl opacity-60"></div>
               
               <div className="relative rounded-[40px] overflow-hidden bg-white shadow-2xl shadow-emerald-900/10 border-[8px] border-white z-0">
-                <img src="/hero-student.png" alt="Happy university student holding notebook" className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-700 ease-in-out bg-slate-50" />
+                <img src="/modern-student.png" alt="Happy modern university student holding notebook" className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-700 ease-in-out bg-slate-50" />
               </div>
               
               {/* Floating elements */}
@@ -214,10 +227,6 @@ export default function Landing() {
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="bg-[#0B1A2C] text-slate-400 py-16">
-        <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="col-span-1 md:col-span-1">
       {/* ── Footer ───────────────────────────────────── */}
       <footer className="bg-slate-900 pt-16 pb-8 px-6 text-slate-300">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">

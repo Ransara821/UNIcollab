@@ -4,17 +4,17 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, GraduationCap, ClipboardList,
   BookOpen, Users, BrainCircuit, LogOut, BookMarked,
-  AlertCircle
+  AlertCircle, MessageSquare
 } from 'lucide-react';
 
 const navItems = [
   { path: '/student/dashboard',        label: 'Dashboard',         icon: LayoutDashboard },
   { path: '/student/kuppi-classes',    label: 'Kuppi Classes',     icon: GraduationCap },
-  { path: '/student/enrollments',      label: 'My Enrollments',    icon: ClipboardList },
+
   { path: '/student/resource-sharing', label: 'Resource Sharing',  icon: BookOpen },
   { path: '/student/study-groups',     label: 'Study Groups',      icon: Users },
   { path: '/student/quizzes',          label: 'Quiz Zone',         icon: BrainCircuit },
-  { path: '/student/feedback',         label: 'Provide Feedback' },
+  { path: '/student/feedback',         label: 'Provide Feedback',  icon: MessageSquare },
 
 ];
 

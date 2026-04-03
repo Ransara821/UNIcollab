@@ -4,20 +4,17 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Users, GraduationCap, ClipboardList,
   Upload, UserCog, BrainCircuit, LogOut, BookMarked, MonitorCheck, Book,
-  AlertCircle
+  AlertCircle, MessageSquare
 } from 'lucide-react';
 
 const navItems = [
   { path: '/admin/dashboard',          label: 'Dashboard',         icon: LayoutDashboard },
   { path: '/admin/users',              label: 'Manage Users',      icon: UserCog },
-  { path: '/admin/post-kuppi-class',   label: 'Post Kuppi Class',  icon: GraduationCap },
-  { path: '/admin/enrollments',        label: 'Enrollments',       icon: ClipboardList },
   { path: '/admin/upload-resource',    label: 'Upload Resource',   icon: Upload },
-  { path: '/admin/create-study-group', label: 'Study Groups',      icon: Users },
   { path: '/admin/subjects',           label: 'Course Subjects',   icon: Book },
   { path: '/admin/quiz-management',    label: 'Quiz Management',   icon: BrainCircuit },
   { path: '/admin/student-attempts',   label: 'Student Attempts',  icon: MonitorCheck },
-  { path: '/admin/feedback-report',    label: 'Feedback Report'},
+  { path: '/admin/feedback-report',    label: 'Feedback Report',   icon: MessageSquare },
 
 ];
 
