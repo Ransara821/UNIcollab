@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookMarked, Users, BookOpen, BrainCircuit, ChevronRight, MapPin, Mail, ArrowRight, CheckCircle2, Star, PlayCircle, Award, File as FileIcon } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 import { getPublicFeedbacks } from '../services/api';
 
 export default function Landing() {
   const [feedbacks, setFeedbacks] = useState([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     getPublicFeedbacks()
@@ -36,12 +38,22 @@ export default function Landing() {
             <a href="#about" className="hover:text-emerald-500 transition-colors">About</a>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/login" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors hidden sm:block">Sign In</Link>
-            <Link to="/register"
-              className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold text-white transition-all transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/25"
-              style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
-              Get Started
-            </Link>
+            {user ? (
+              <Link to={user.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold text-white transition-all transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/25"
+                style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors hidden sm:block">Sign In</Link>
+                <Link to="/register"
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold text-white transition-all transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/25"
+                  style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -63,9 +75,9 @@ export default function Landing() {
               Better <span className="text-emerald-500 relative">
                 Learning
                 <svg className="absolute w-full h-3 -bottom-1 left-0 text-emerald-200 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
-                   <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
+                  <path d="M0 5 Q 50 10 100 5" stroke="currentColor" strokeWidth="8" fill="none" />
                 </svg>
-              </span> <br className="hidden lg:block"/> Future Starts <br/> With UNIcollab
+              </span> <br className="hidden lg:block" /> Future Starts <br /> With UNIcollab
             </h1>
 
             <p className="text-lg text-slate-500 max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed font-medium">
@@ -73,11 +85,19 @@ export default function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link to="/register"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white text-base transition-all transform hover:-translate-y-1 shadow-xl shadow-emerald-500/20"
-                style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
-                Start Learning Now <ArrowRight size={18} />
-              </Link>
+              {user ? (
+                <Link to={user.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white text-base transition-all transform hover:-translate-y-1 shadow-xl shadow-emerald-500/20"
+                  style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
+                  Go to Dashboard <ArrowRight size={18} />
+                </Link>
+              ) : (
+                <Link to="/register"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white text-base transition-all transform hover:-translate-y-1 shadow-xl shadow-emerald-500/20"
+                  style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
+                  Start Learning Now <ArrowRight size={18} />
+                </Link>
+              )}
               <a href="#features"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all">
                 <PlayCircle size={18} className="text-emerald-500" /> Watch Demo
@@ -87,8 +107,8 @@ export default function Landing() {
             <div className="mt-12 flex items-center justify-center lg:justify-start gap-8 border-t border-slate-200/60 pt-8">
               <div className="flex items-center gap-3">
                 <div className="flex -space-x-2">
-                  {[1,2,3,4].map(i => (
-                    <div key={i} className={`w-8 h-8 rounded-full border-2 border-white bg-slate-200 z-${10-i} flex items-center justify-center text-[10px] font-bold text-slate-600`}>U{i}</div>
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className={`w-8 h-8 rounded-full border-2 border-white bg-slate-200 z-${10 - i} flex items-center justify-center text-[10px] font-bold text-slate-600`}>U{i}</div>
                   ))}
                 </div>
                 <div className="text-sm">
@@ -103,14 +123,14 @@ export default function Landing() {
             <div className="relative w-full max-w-[550px] mx-auto">
               {/* Decorative background shape */}
               <div className="absolute inset-0 bg-gradient-to-tr from-teal-400 to-emerald-400 rounded-full shadow-2xl shadow-emerald-900/20 translate-y-8 -z-10 blur-xl opacity-60"></div>
-              
+
               <div className="relative rounded-[40px] overflow-hidden bg-white shadow-2xl shadow-emerald-900/10 border-[8px] border-white z-0">
                 <img src="/modern-student.png" alt="Happy modern university student holding notebook" className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-700 ease-in-out bg-slate-50" />
               </div>
-              
+
               {/* Floating elements */}
               <div className="absolute top-1/4 -right-8 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 animate-bounce hover:animate-none transition-all cursor-default z-20" style={{ animationDuration: '3s' }}>
-                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center"><CheckCircle2 className="text-emerald-600" size={20}/></div>
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center"><CheckCircle2 className="text-emerald-600" size={20} /></div>
                 <div>
                   <p className="font-bold text-slate-800 text-sm">Target Met!</p>
                   <p className="text-xs text-slate-500">GPA Improved</p>
@@ -118,7 +138,7 @@ export default function Landing() {
               </div>
 
               <div className="absolute bottom-1/4 -left-8 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 animate-pulse hover:animate-none z-20" style={{ animationDuration: '4s' }}>
-                <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center"><Users className="text-teal-600" size={20}/></div>
+                <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center"><Users className="text-teal-600" size={20} /></div>
                 <div>
                   <p className="font-bold text-slate-800 text-sm">Study Group</p>
                   <p className="text-xs text-slate-500">5 members active</p>
@@ -185,16 +205,23 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto bg-gradient-to-br from-emerald-500 to-teal-500 rounded-[3rem] p-12 text-center text-white relative overflow-hidden shadow-2xl shadow-emerald-500/20">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-900 opacity-20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-          
+
           <div className="relative z-10">
             <h2 className="text-4xl font-black mb-6">One Platform For True Academic Success</h2>
             <p className="text-emerald-50 text-lg max-w-2xl mx-auto mb-10 font-medium">
               UNIcollab bridges the gap between institutional learning and collaborative study. Our platform empowers students to share knowledge, find study partners, and prepare efficiently.
             </p>
-            <Link to="/register"
-              className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-emerald-600 bg-white hover:bg-slate-50 transition-all transform hover:-translate-y-1 shadow-lg cursor-pointer">
-              Join UNIcollab Today
-            </Link>
+            {user ? (
+              <Link to={user.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-emerald-600 bg-white hover:bg-slate-50 transition-all transform hover:-translate-y-1 shadow-lg cursor-pointer">
+                Go to Dashboard
+              </Link>
+            ) : (
+              <Link to="/register"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-emerald-600 bg-white hover:bg-slate-50 transition-all transform hover:-translate-y-1 shadow-lg cursor-pointer">
+                Join UNIcollab Today
+              </Link>
+            )}
           </div>
         </div>
       </section>
