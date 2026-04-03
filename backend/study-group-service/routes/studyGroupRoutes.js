@@ -24,6 +24,7 @@ router.post('/',  protect, group.createGroup);
 router.get('/:id',               protect, group.getGroup);
 router.patch('/:id',             protect, group.updateGroup);
 router.patch('/:id/status',      protect, group.toggleStatus);
+router.patch('/:id/close',       protect, group.endProject);
 router.patch('/:id/skills-needed', protect, group.updateSkillsNeeded);
 
 // ── Join requests ──
