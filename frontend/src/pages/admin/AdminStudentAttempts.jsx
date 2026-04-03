@@ -28,7 +28,7 @@ export default function AdminStudentAttempts() {
         <table className="w-full text-left">
           <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 uppercase tracking-wider text-xs font-bold">
             <tr>
-              <th className="px-6 py-5">Student Identity</th>
+              <th className="px-6 py-5">Student Name</th>
               <th className="px-6 py-5">Quiz Examination</th>
               <th className="px-6 py-5">Status</th>
               <th className="px-6 py-5">Score Metrics</th>
@@ -41,7 +41,14 @@ export default function AdminStudentAttempts() {
             {attempts.map(att => (
               <tr key={att._id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-5 font-bold text-slate-800">
-                  <span className="flex items-center gap-2"><Users size={16} className="text-indigo-500"/> {att.studentId}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 shadow-sm">
+                      <Users size={15}/>
+                    </div>
+                    <div className="flex flex-col justify-center">
+                      <span className="font-bold text-slate-800 leading-tight">{att.userName || 'Unknown Student'}</span>
+                    </div>
+                  </div>
                 </td>
                 <td className="px-6 py-5 font-semibold text-slate-600">{att.quizId?.title || 'Deleted Quiz'} <div className="text-xs text-slate-400 font-medium">{att.quizId?.subjectId?.name}</div></td>
                 <td className="px-6 py-5">
