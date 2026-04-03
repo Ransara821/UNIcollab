@@ -38,13 +38,6 @@ export default function Landing() {
             <a href="#about" className="hover:text-emerald-500 transition-colors">About</a>
           </div>
           <div className="flex items-center gap-4">
-            {user ? (
-              <Link to={user.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold text-white transition-all transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/25"
-                style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
-                Dashboard
-              </Link>
-            ) : (
               <>
                 <Link to="/login" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors hidden sm:block">Sign In</Link>
                 <Link to="/register"
@@ -53,7 +46,6 @@ export default function Landing() {
                   Get Started
                 </Link>
               </>
-            )}
           </div>
         </div>
       </nav>
@@ -85,19 +77,11 @@ export default function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              {user ? (
-                <Link to={user.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}
-                  className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white text-base transition-all transform hover:-translate-y-1 shadow-xl shadow-emerald-500/20"
-                  style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
-                  Go to Dashboard <ArrowRight size={18} />
-                </Link>
-              ) : (
                 <Link to="/register"
                   className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white text-base transition-all transform hover:-translate-y-1 shadow-xl shadow-emerald-500/20"
                   style={{ background: 'linear-gradient(135deg, #10B981, #14B8A6)' }}>
                   Start Learning Now <ArrowRight size={18} />
                 </Link>
-              )}
               <a href="#features"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-slate-700 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all">
                 <PlayCircle size={18} className="text-emerald-500" /> Watch Demo
@@ -211,17 +195,10 @@ export default function Landing() {
             <p className="text-emerald-50 text-lg max-w-2xl mx-auto mb-10 font-medium">
               UNIcollab bridges the gap between institutional learning and collaborative study. Our platform empowers students to share knowledge, find study partners, and prepare efficiently.
             </p>
-            {user ? (
-              <Link to={user.role === 'admin' ? '/admin/dashboard' : '/student/dashboard'}
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-emerald-600 bg-white hover:bg-slate-50 transition-all transform hover:-translate-y-1 shadow-lg cursor-pointer">
-                Go to Dashboard
-              </Link>
-            ) : (
               <Link to="/register"
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-emerald-600 bg-white hover:bg-slate-50 transition-all transform hover:-translate-y-1 shadow-lg cursor-pointer">
                 Join UNIcollab Today
               </Link>
-            )}
           </div>
         </div>
       </section>
