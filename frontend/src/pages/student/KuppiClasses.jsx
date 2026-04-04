@@ -797,6 +797,7 @@ function useCRUD(loadFn) {
       await deleteKuppiClass(id);
       setSessions(s => s.filter(c => c._id !== id));
       setDeleteId(null);
+      showToast('Successfully deleted!', 'error');
     } catch (err) {
       setDeleteErr(err.response?.data?.message || 'Delete failed.');
     } finally { setDeleting(false); }

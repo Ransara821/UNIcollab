@@ -7,14 +7,26 @@ import { Mail, Lock, AlertCircle, BookMarked, ArrowRight, CheckCircle2 } from 'l
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const successMessage = location.state?.message;
 
+  const handleEmailChange = (e) => {
+    const val = e.target.value;
+    if (/[A-Z]/.test(val)) {
+      setEmailError('Email must use lowercase letters only — no capital letters allowed.');
+    } else {
+      setEmailError('');
+    }
+    setForm({ ...form, email: val.toLowerCase() });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (emailError) return;
     setLoading(true);
     setError('');
     try {
@@ -104,12 +116,21 @@ export default function Login() {
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Email Address</label>
                 <div className="relative">
-                  <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+                  <Mail size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 ${emailError ? 'text-red-400' : 'text-slate-400'}`} />
+                  <input type="email" value={form.email} onChange={handleEmailChange}
                     placeholder="Enter your email" required
-                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-slate-800 placeholder-slate-400 bg-slate-50 border border-slate-200 outline-none transition-all focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold"
+                    className={`w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-slate-800 placeholder-slate-400 outline-none transition-all font-bold ${
+                      emailError
+                        ? 'bg-red-50 border-2 border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                        : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10'
+                    }`}
                   />
                 </div>
+                {emailError && (
+                  <p className="mt-2 text-xs font-semibold text-red-500 flex items-center gap-1">
+                    <AlertCircle size={13} className="shrink-0" /> {emailError}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-slate-700 ml-1">Password</label>
