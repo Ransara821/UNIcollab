@@ -31,9 +31,11 @@ router.post('/',   protect, recognizedOnly, createKuppiClass);        // recogni
 router.put('/:id',    protect, ownerOrAdmin, updateKuppiClass);       // owner or admin only
 router.delete('/:id', protect, ownerOrAdmin, deleteKuppiClass);       // owner or admin only
 
+// Host ratings (must come before /:id)
+router.get('/host/my-ratings', protect, getMyReceivedRatings);
+
 // ── Rating ───────────────────────────────────────────────────────────────────
 router.post('/:id/rate', protect, rateSession);
 router.get('/:id/ratings', getSessionRatings);
-router.get('/host/my-ratings', protect, getMyReceivedRatings);
 
 module.exports = router;
