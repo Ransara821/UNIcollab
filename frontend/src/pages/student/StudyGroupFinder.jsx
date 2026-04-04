@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
-  getStudyGroups, createStudyGroup, getMyGroup, toggleGroupStatus, closeStudyGroup, updateSkillsNeeded, updateStudyGroup,
+  getStudyGroups, createStudyGroup, getMyGroup, toggleGroupStatus, closeStudyGroup, deleteStudyGroup, updateSkillsNeeded, updateStudyGroup,
   sendJoinRequest, sendGroupInvite, getMyStudyRequests, getGroupRequests, updateJoinRequest,
   getStudySuggestions, getGrouplessPool, getMyStudyProfile, saveStudyProfile,
   getAnnouncements, createAnnouncement, deleteAnnouncement,
@@ -74,6 +74,7 @@ export default function StudyGroupFinder() {
   const [ratingForms, setRatingForms]         = useState({});   // { userId: { score, comment } }
   const [myRatingsData, setMyRatingsData]     = useState(null); // { ratings, average, count }
   const [confirmEndProject, setConfirmEndProject] = useState(false);
+  const [confirmDeleteGroup, setConfirmDeleteGroup] = useState(false);
 
   const setL = (k, v) => setLoading(p => ({ ...p, [k]: v }));
   const setA = (k, v) => setActLoad(p => ({ ...p, [k]: v }));
@@ -284,6 +285,23 @@ export default function StudyGroupFinder() {
       setRatingForms(forms);
     } catch (e) { notify(e.response?.data?.message || 'Failed', true); }
     finally { setA('endProject', false); }
+  };
+
+  const handleDeleteGroup = async () => {
+    setA('deleteGroup', true);
+    try {
+      await deleteStudyGroup(myGroup._id);
+      setConfirmDeleteGroup(false);
+      setMyGroup(null);
+      setMyGroupRole(null);
+      setGroupReqs([]);
+      setAnnouncements([]);
+      setGroupRatings([]);
+      setRatingForms({});
+      notify('Group deleted.');
+      fetchGroups();
+    } catch (e) { notify(e.response?.data?.message || 'Failed to delete group', true); }
+    finally { setA('deleteGroup', false); }
   };
 
   const handleUpdateSkillsNeeded = async () => {
@@ -528,30 +546,46 @@ export default function StudyGroupFinder() {
   /* ── Render ── */
   return (
     <div className="p-6 bg-slate-50 min-h-screen">
-      <div className="mb-5">
-        <h1 className="text-2xl font-extrabold text-slate-900">Study Group Finder</h1>
-        <p className="text-slate-500 text-sm mt-1">Find your perfect study group</p>
+      {/* ── Hero Banner + Tabs ── */}
+      <div className="relative mb-6 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+        {/* Gradient section */}
+        <div className="relative bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 px-8 pt-8 pb-8">
+          {/* Background texture circles */}
+          <div className="absolute -top-8 -left-8 w-40 h-40 rounded-full bg-white/5" />
+          <div className="absolute -bottom-10 left-32 w-56 h-56 rounded-full bg-white/5" />
+          <div className="absolute -top-4 right-48 w-24 h-24 rounded-full bg-white/5" />
+
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 bg-white/15 text-white text-xs font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-4">
+              <span>⚡</span> Collaborative Learning Hub
+            </div>
+            <h1 className="text-3xl font-extrabold text-white mb-2">Study Group Finder</h1>
+            <p className="text-white/80 text-sm max-w-md leading-relaxed">
+              Find your perfect study team. Collaborate on projects, share skills, and ace your modules together.
+            </p>
+          </div>
+        </div>
+
+        {/* Tab bar attached to bottom */}
+        <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 border-t border-white/20 px-4 py-1.5 overflow-x-auto">
+          <div className="flex gap-1">
+            {TABS.map(t => (
+              <button key={t.id} onClick={() => setActiveTab(t.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all flex-1 justify-center ${
+                  activeTab === t.id
+                    ? 'bg-white/20 text-white font-bold'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}>
+                <span className="text-base leading-none">{t.icon}</span>
+                <span>{t.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {success && <div className="mb-4 bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-3 rounded-xl text-sm font-semibold">✅ {success}</div>}
       {error   && <div className="mb-4 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-semibold">⚠️ {error}</div>}
-
-      {/* Tabs */}
-      <div className="mb-6">
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-2xl overflow-x-auto">
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setActiveTab(t.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all flex-1 justify-center ${
-                activeTab === t.id
-                  ? 'bg-white text-slate-900 shadow-sm font-bold'
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
-              }`}>
-              <span className={`text-base leading-none ${activeTab === t.id ? 'text-emerald-500' : ''}`}>{t.icon}</span>
-              <span>{t.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* ─── DISCOVER ─── */}
       {activeTab === 'discover' && (
@@ -998,7 +1032,7 @@ export default function StudyGroupFinder() {
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     <span className={`text-xs font-bold px-3 py-1 rounded-full ${myGroup.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{myGroup.status}</span>
-                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${myGroupRole === 'leader' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`text-xs font-bold ${myGroupRole === 'leader' ? 'text-red-500' : 'text-slate-400'}`}>
                       {myGroupRole === 'leader' ? 'Group Leader' : 'Member'}
                     </span>
                   </div>
@@ -1015,26 +1049,66 @@ export default function StudyGroupFinder() {
                 </div>
                 {myGroupRole === 'leader' && (
                   <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* ── Operational actions ── */}
                       {myGroup.status !== 'closed' && (
                         <button onClick={handleToggleStatus}
-                          className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${myGroup.status === 'open' ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}>
-                          {myGroup.status === 'open' ? '🔒 Set Full' : '🔓 Set Open'}
-                        </button>
-                      )}
-                      {myGroup.status !== 'closed' && (
-                        <button onClick={openEditGroup}
-                          className="px-4 py-2 rounded-xl text-sm font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all">
-                          Edit Group
+                          className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold border-2 transition-all duration-150 ${
+                            myGroup.status === 'open'
+                              ? 'border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100 hover:border-amber-300'
+                              : 'border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:border-emerald-300'
+                          }`}>
+                          <span>{myGroup.status === 'open' ? '' : ''}</span>
+                          {myGroup.status === 'open' ? 'Set Full' : 'Set Open'}
                         </button>
                       )}
                       {myGroup.status !== 'closed' && (
                         <button onClick={() => setConfirmEndProject(true)}
-                          className="px-4 py-2 rounded-xl text-sm font-bold bg-slate-800 text-white hover:bg-black transition-all">
-                          🏁 End Project
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold border-2 border-slate-800 text-slate-800 bg-white hover:bg-slate-800 hover:text-white transition-all duration-150">
+                          <span></span>
+                          End Project
                         </button>
                       )}
+                      
+
+                      {/* ── Divider ── */}
+                      {myGroup.status !== 'closed' && <div className="h-6 w-px bg-slate-200 mx-1" />}
+
+                      {/* ── Destructive actions ── */}
+                      
+                      {myGroup.status !== 'closed' && (
+                        <button onClick={openEditGroup}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold border-2 border-slate-200 text-slate-600 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all duration-150">
+                          <span></span>
+                          Edit Group
+                        </button>
+                      )}
+                      <button onClick={() => setConfirmDeleteGroup(true)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold border-2 border-red-200 text-red-500 bg-white hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-150">
+                        <span></span>
+                        Delete Group
+                      </button>
                     </div>
+
+                    {/* Delete Group confirmation */}
+                    {confirmDeleteGroup && (
+                      <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+                        <p className="text-sm font-bold text-red-700 mb-1">Delete this group?</p>
+                        <p className="text-xs text-red-500 mb-4">
+                          This will permanently remove the group, all join requests, announcements, and ratings. Members will be set back to looking for a group.
+                        </p>
+                        <div className="flex gap-2">
+                          <button onClick={handleDeleteGroup} disabled={actLoad.deleteGroup}
+                            className="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 disabled:opacity-50 transition-all">
+                            {actLoad.deleteGroup ? 'Deleting...' : 'Yes, Delete Group'}
+                          </button>
+                          <button onClick={() => setConfirmDeleteGroup(false)}
+                            className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {/* End Project confirmation */}
                     {confirmEndProject && (
@@ -1155,7 +1229,7 @@ export default function StudyGroupFinder() {
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-slate-800">{m.name}</p>
-                        {m.userId === myGroup.leader && <p className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full inline-block">Group Leader</p>}
+                        {m.userId === myGroup.leader && <p className="text-xs font-bold text-red-500">Group Leader</p>}
                       </div>
                     </div>
                   ))}
@@ -1163,76 +1237,123 @@ export default function StudyGroupFinder() {
               </div>
 
               {/* ── Announcement Board ── */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <h3 className="font-extrabold text-slate-900">Announcement Board</h3>
-                  <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
-                    {announcements.length} post{announcements.length !== 1 ? 's' : ''}
-                  </span>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-white text-sm shadow-sm">
+                      📋
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-slate-900 text-sm leading-none">Announcement Board</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">Group updates &amp; reminders</p>
+                    </div>
+                  </div>
+                  {announcements.length > 0 && (
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
+                      {announcements.length} post{announcements.length !== 1 ? 's' : ''}
+                    </span>
+                  )}
                 </div>
 
-                {/* Leader compose form */}
-                {myGroupRole === 'leader' && (
-                  <div className="mb-5 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
-                    <div className="flex gap-2">
-                      {['update', 'reminder'].map(t => (
-                        <button key={t} onClick={() => setAnnForm(p => ({ ...p, type: t }))}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition-all ${
-                            annForm.type === t
-                              ? t === 'reminder' ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white'
-                              : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-300'
-                          }`}>
-                          {t === 'update' ? '📢 Update' : '⏰ Reminder'}
-                        </button>
-                      ))}
-                    </div>
-                    <textarea
-                      rows={3}
-                      placeholder="Write an announcement for your group members..."
-                      value={annForm.content}
-                      onChange={e => setAnnForm(p => ({ ...p, content: e.target.value }))}
-                      className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400 resize-none"
-                    />
-                    <div className="flex justify-end">
-                      <button onClick={handlePostAnnouncement} disabled={actLoad.postAnn || !annForm.content.trim()}
-                        className="px-5 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-600 disabled:opacity-50 transition-all">
-                        {actLoad.postAnn ? 'Posting...' : 'Post Announcement'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Feed */}
-                {announcements.length === 0 ? (
-                  <p className="text-sm text-slate-400 text-center py-6">No announcements yet</p>
-                ) : (
-                  <div className="space-y-3">
-                    {announcements.map(ann => (
-                      <div key={ann._id} className={`rounded-2xl border-2 p-4 ${
-                        ann.type === 'reminder' ? 'border-amber-100 bg-amber-50/50' : 'border-blue-100 bg-blue-50/30'
-                      }`}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-base">{ann.type === 'reminder' ? '⏰' : '📢'}</span>
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full capitalize ${
-                              ann.type === 'reminder' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
-                            }`}>{ann.type}</span>
-                            <span className="text-xs font-semibold text-slate-500">{ann.authorName}</span>
-                            <span className="text-xs text-slate-300">
-                              {new Date(ann.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </span>
-                          </div>
-                          {myGroupRole === 'leader' && (
-                            <button onClick={() => handleDeleteAnnouncement(ann._id)} disabled={actLoad[`delAnn_${ann._id}`]}
-                              className="text-slate-300 hover:text-red-400 font-bold text-lg leading-none shrink-0 transition-colors disabled:opacity-50"
-                              title="Delete">×</button>
-                          )}
-                        </div>
-                        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{ann.content}</p>
+                <div className="p-5 space-y-4">
+                  {/* Leader compose form */}
+                  {myGroupRole === 'leader' && (
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 overflow-hidden">
+                      {/* Type selector */}
+                      <div className="flex border-b border-slate-200">
+                        {[
+                          { type: 'update',   icon: '', label: 'Update',   active: 'bg-blue-500 text-white', inactive: 'text-slate-500 hover:text-blue-600 hover:bg-blue-50' },
+                          { type: 'reminder', icon: '', label: 'Reminder', active: 'bg-amber-500 text-white', inactive: 'text-slate-500 hover:text-amber-600 hover:bg-amber-50' },
+                        ].map(({ type, icon, label, active, inactive }) => (
+                          <button key={type} onClick={() => setAnnForm(p => ({ ...p, type }))}
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold transition-all duration-150 ${annForm.type === type ? active : inactive}`}>
+                            <span>{icon}</span>
+                            {label}
+                          </button>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                )}
+                      {/* Compose area */}
+                      <div className="p-3 space-y-3">
+                        <textarea
+                          rows={3}
+                          placeholder="Write something for your group members..."
+                          value={annForm.content}
+                          onChange={e => setAnnForm(p => ({ ...p, content: e.target.value }))}
+                          className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 placeholder-slate-300 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-50 resize-none transition-all"
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-slate-300">{annForm.content.length}/300 chars</span>
+                          <button onClick={handlePostAnnouncement} disabled={actLoad.postAnn || !annForm.content.trim()}
+                            className="inline-flex items-center gap-1.5 px-5 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm hover:shadow">
+                            {actLoad.postAnn
+                              ? <><span className="animate-spin text-sm">⟳</span> Posting...</>
+                              : <><span>✦</span> Post</>}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Feed */}
+                  {announcements.length === 0 ? (
+                    <div className="flex flex-col items-center py-10 text-center">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-2xl mb-3">📭</div>
+                      <p className="text-sm font-semibold text-slate-400">No announcements yet</p>
+                      {myGroupRole === 'leader' && (
+                        <p className="text-xs text-slate-300 mt-1">Post your first update above</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {announcements.map(ann => {
+                        const isReminder = ann.type === 'reminder';
+                        return (
+                          <div key={ann._id} className={`group relative rounded-2xl overflow-hidden border transition-all duration-150 hover:shadow-sm ${
+                            isReminder
+                              ? 'border-amber-100 bg-gradient-to-br from-amber-50 to-orange-50/30'
+                              : 'border-blue-100 bg-gradient-to-br from-blue-50/60 to-slate-50/30'
+                          }`}>
+                            {/* Left accent bar */}
+                            <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${isReminder ? 'bg-amber-400' : 'bg-blue-400'}`} />
+
+                            <div className="pl-5 pr-4 py-4">
+                              {/* Top row */}
+                              <div className="flex items-center justify-between gap-2 mb-2.5">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${
+                                    isReminder ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                                  }`}>
+                                    <span>{isReminder ? '⏰' : '📢'}</span>
+                                    {ann.type}
+                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs shrink-0">
+                                      {(ann.authorName || 'L')[0].toUpperCase()}
+                                    </div>
+                                    <span className="text-xs font-semibold text-slate-600">{ann.authorName}</span>
+                                  </div>
+                                  <span className="text-xs text-slate-300">
+                                    {new Date(ann.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                  </span>
+                                </div>
+                                {myGroupRole === 'leader' && (
+                                  <button onClick={() => handleDeleteAnnouncement(ann._id)} disabled={actLoad[`delAnn_${ann._id}`]}
+                                    className="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all duration-150 disabled:opacity-30 shrink-0"
+                                    title="Delete">
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
+                              {/* Content */}
+                              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{ann.content}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* ── Rate Your Teammates (only when project ended / group closed) ── */}
