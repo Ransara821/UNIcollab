@@ -123,6 +123,32 @@ exports.updateGroup = async (req, res) => {
   }
 };
 
+exports.leaveGroup = async (req, res) => {
+  try {
+    const group = await StudyGroup.findById(req.params.id);
+    if (!group) return res.status(404).json({ message: 'Group not found' });
+    if (group.status !== 'closed')
+      return res.status(400).json({ message: 'You can only leave after the project has ended' });
+    if (group.leader === req.user.id)
+      return res.status(400).json({ message: 'Leaders cannot leave — delete the group instead' });
+
+    const isMember = group.members.some(m => m.userId === req.user.id);
+    if (!isMember) return res.status(400).json({ message: 'You are not a member of this group' });
+
+    group.members = group.members.filter(m => m.userId !== req.user.id);
+    await group.save();
+
+    await StudentProfile.findOneAndUpdate(
+      { userId: req.user.id },
+      { $unset: { groupId: '' }, $set: { status: 'lookingForGroup' } }
+    );
+
+    res.json({ message: 'You have left the group' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 exports.deleteGroup = async (req, res) => {
   try {
     const group = await StudyGroup.findById(req.params.id);

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import {
-  getStudyGroups, createStudyGroup, getMyGroup, toggleGroupStatus, closeStudyGroup, deleteStudyGroup, updateSkillsNeeded, updateStudyGroup,
+  getStudyGroups, createStudyGroup, getMyGroup, toggleGroupStatus, closeStudyGroup, deleteStudyGroup, leaveStudyGroup, updateSkillsNeeded, updateStudyGroup,
   sendJoinRequest, sendGroupInvite, getMyStudyRequests, getGroupRequests, updateJoinRequest,
   getStudySuggestions, getGrouplessPool, getMyStudyProfile, saveStudyProfile,
   getAnnouncements, createAnnouncement, deleteAnnouncement,
@@ -73,8 +73,10 @@ export default function StudyGroupFinder() {
   const [groupRatings, setGroupRatings]       = useState([]);   // ratings I submitted for my current group
   const [ratingForms, setRatingForms]         = useState({});   // { userId: { score, comment } }
   const [myRatingsData, setMyRatingsData]     = useState(null); // { ratings, average, count }
+  const [ratingSuccess, setRatingSuccess]     = useState({});   // { userId: true } after submit
   const [confirmEndProject, setConfirmEndProject] = useState(false);
   const [confirmDeleteGroup, setConfirmDeleteGroup] = useState(false);
+  const [confirmLeaveGroup, setConfirmLeaveGroup] = useState(false);
 
   const setL = (k, v) => setLoading(p => ({ ...p, [k]: v }));
   const setA = (k, v) => setActLoad(p => ({ ...p, [k]: v }));
@@ -195,7 +197,8 @@ export default function StudyGroupFinder() {
     setA(`rate_${toUserId}`, true);
     try {
       await submitRating(myGroup._id, { toUserId, score: form.score, comment: form.comment });
-      notify('Rating submitted!');
+      setRatingSuccess(p => ({ ...p, [toUserId]: true }));
+      setTimeout(() => setRatingSuccess(p => ({ ...p, [toUserId]: false })), 3000);
       const gr = await getGroupRatings(myGroup._id);
       setGroupRatings(gr.data);
       const mr = await getMyRatings();
@@ -285,6 +288,22 @@ export default function StudyGroupFinder() {
       setRatingForms(forms);
     } catch (e) { notify(e.response?.data?.message || 'Failed', true); }
     finally { setA('endProject', false); }
+  };
+
+  const handleLeaveGroup = async () => {
+    setA('leaveGroup', true);
+    try {
+      await leaveStudyGroup(myGroup._id);
+      setConfirmLeaveGroup(false);
+      setMyGroup(null);
+      setMyGroupRole(null);
+      setAnnouncements([]);
+      setGroupRatings([]);
+      setRatingForms({});
+      notify('You have left the group.');
+      fetchGroups();
+    } catch (e) { notify(e.response?.data?.message || 'Failed to leave group', true); }
+    finally { setA('leaveGroup', false); }
   };
 
   const handleDeleteGroup = async () => {
@@ -731,7 +750,7 @@ export default function StudyGroupFinder() {
               </div>
               <button type="submit" disabled={actLoad.createGroup}
                 className="w-full py-3 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-600 disabled:opacity-50 transition-all">
-                {actLoad.createGroup ? 'Creating...' : '✅ Create Study Group'}
+                {actLoad.createGroup ? 'Creating...' : 'Create Study Group'}
               </button>
             </form>
           </div>
@@ -1234,6 +1253,33 @@ export default function StudyGroupFinder() {
                     </div>
                   ))}
                 </div>
+
+                {/* Member leave button — only when project ended */}
+                {myGroup.status === 'closed' && myGroupRole === 'member' && (
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    {!confirmLeaveGroup ? (
+                      <button onClick={() => setConfirmLeaveGroup(true)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-bold border-2 border-red-200 text-red-500 bg-white hover:bg-red-500 hover:text-white hover:border-red-500 transition-all duration-150">
+                        Leave Group
+                      </button>
+                    ) : (
+                      <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+                        <p className="text-sm font-bold text-red-700 mb-1">Leave this group?</p>
+                        <p className="text-xs text-red-500 mb-4">You will be set back to looking for a group.</p>
+                        <div className="flex gap-2">
+                          <button onClick={handleLeaveGroup} disabled={actLoad.leaveGroup}
+                            className="px-4 py-2 bg-red-600 text-white rounded-xl text-xs font-bold hover:bg-red-700 disabled:opacity-50 transition-all">
+                            {actLoad.leaveGroup ? 'Leaving...' : 'Yes, Leave'}
+                          </button>
+                          <button onClick={() => setConfirmLeaveGroup(false)}
+                            className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition-all">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* ── Announcement Board ── */}
@@ -1245,7 +1291,7 @@ export default function StudyGroupFinder() {
                       📋
                     </div>
                     <div>
-                      <h3 className="font-extrabold text-slate-900 text-sm leading-none">Announcement Board</h3>
+                      <h3 className="font-extrabold text-slate-900 leading-none">Announcement Board</h3>
                       <p className="text-xs text-slate-400 mt-0.5">Group updates &amp; reminders</p>
                     </div>
                   </div>
@@ -1403,12 +1449,19 @@ export default function StudyGroupFinder() {
                               onChange={e => setRatingForms(p => ({ ...p, [m.userId]: { ...p[m.userId], comment: e.target.value } }))}
                               className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-600 focus:outline-none focus:border-emerald-400 resize-none mb-2"
                             />
-                            <button
-                              onClick={() => handleSubmitRating(m.userId)}
-                              disabled={actLoad[`rate_${m.userId}`] || !form.score}
-                              className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold hover:bg-emerald-600 disabled:opacity-50 transition-all">
-                              {actLoad[`rate_${m.userId}`] ? 'Submitting...' : submitted ? 'Update Rating' : 'Submit Rating'}
-                            </button>
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => handleSubmitRating(m.userId)}
+                                disabled={actLoad[`rate_${m.userId}`] || !form.score}
+                                className="px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-bold hover:bg-emerald-600 disabled:opacity-50 transition-all">
+                                {actLoad[`rate_${m.userId}`] ? 'Submitting...' : submitted ? 'Update Rating' : 'Submit Rating'}
+                              </button>
+                              {ratingSuccess[m.userId] && (
+                                <span className="flex items-center gap-1 text-xs font-bold text-emerald-600">
+                                  ✅ Submitted successfully!
+                                </span>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
