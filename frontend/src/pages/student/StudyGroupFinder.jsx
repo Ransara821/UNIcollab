@@ -221,9 +221,9 @@ export default function StudyGroupFinder() {
     try {
       await saveStudyProfile({ ...pf, name: user?.name, email: user?.email });
       notify('Profile saved!');
-      setPf({ year: 1, semester: 1, gpa: '', faculty: '', skills: [], workingStyle: 'mixed', availability: {}, deadline: '', sosFlag: false, status: 'lookingForGroup' });
       setSkillInput('');
       setProfileSaved(true);
+      setPf({ year: 1, semester: 1, gpa: '', faculty: '', skills: [], workingStyle: 'mixed', availability: {}, deadline: '', sosFlag: false, status: 'lookingForGroup' });
       fetchSuggestions(); fetchPool();
     } catch (e) { notify(e.response?.data?.message || 'Save failed', true); }
     finally { setA('saveProfile', false); }
@@ -405,7 +405,7 @@ export default function StudyGroupFinder() {
     const memberCount = (g.members || []).length;
     const spotsLeft = g.maxSize - memberCount;
     return (
-      <div className={`bg-white rounded-2xl border-2 ${isSuggestion ? 'border-emerald-200' : 'border-slate-100'} shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden w-full`}>
+      <div className={`bg-white rounded-2xl border-2 border-emerald-400 shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden w-full`}>
 
         {/* Top colour bar */}
         <div className={`h-1.5 w-full ${g.status === 'open' ? 'bg-emerald-400' : 'bg-red-300'}`} />
@@ -566,7 +566,7 @@ export default function StudyGroupFinder() {
   return (
     <div className="p-6 bg-slate-50 min-h-screen">
       {/* ── Hero Banner + Tabs ── */}
-      <div className="relative mb-6 rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+      <div className="relative mb-6 rounded-2xl overflow-hidden shadow-sm border-2 border-emerald-400">
         {/* Gradient section */}
         <div className="relative bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 px-8 pt-8 pb-8">
           {/* Background texture circles */}
@@ -609,7 +609,7 @@ export default function StudyGroupFinder() {
       {/* ─── DISCOVER ─── */}
       {activeTab === 'discover' && (
         <div>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6 flex flex-wrap gap-3">
+          <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-2xl p-4 mb-6 flex flex-wrap gap-3">
             <input type="text" placeholder="Search groups..." value={search} onChange={e => setSearch(e.target.value)}
               className="flex-1 min-w-44 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-400" />
             <input type="text" placeholder="Filter by subject..." value={filterSubject} onChange={e => setFilterSubject(e.target.value)}
@@ -653,7 +653,7 @@ export default function StudyGroupFinder() {
           {loading.groups ? (
             <div className="text-center py-16 text-slate-300 font-semibold">Loading...</div>
           ) : groups.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
+            <div className="bg-white rounded-2xl border-2 border-emerald-400 p-12 text-center">
               <p className="text-slate-400 font-semibold">No groups found</p>
               <p className="text-xs text-slate-300 mt-1">Try adjusting filters</p>
             </div>
@@ -672,7 +672,7 @@ export default function StudyGroupFinder() {
       {/* ─── CREATE GROUP ─── */}
       {activeTab === 'create' && (
         <div className="max-w-2xl">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white rounded-2xl border-2 border-emerald-400 shadow-sm p-6">
             <div className="flex items-center gap-2 mb-6">
               <h2 className="text-lg font-extrabold text-slate-900">Create a Study Group</h2>
               <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">You become the leader</span>
@@ -760,7 +760,7 @@ export default function StudyGroupFinder() {
       {/* ─── PROFILE ─── */}
       {activeTab === 'profile' && (
         <div className="max-w-3xl">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white rounded-2xl border-2 border-emerald-400 shadow-sm p-6">
             <div className="flex items-center gap-2 mb-6">
               <h2 className="text-lg font-extrabold text-slate-900">Student Profile</h2>
             </div>
@@ -903,11 +903,11 @@ export default function StudyGroupFinder() {
                   {label} <span className="text-slate-400 font-semibold text-sm">({items.length})</span>
                 </h2>
                 {items.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400 text-sm">{empty}</div>
+                  <div className="bg-white rounded-2xl border-2 border-emerald-400 p-8 text-center text-slate-400 text-sm">{empty}</div>
                 ) : (
                   <div className="space-y-3">
                     {items.map(req => (
-                      <div key={req._id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center justify-between gap-3">
+                      <div key={req._id} className="bg-white rounded-2xl border-2 border-emerald-400 shadow-sm p-4 flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <p className="font-bold text-slate-900 text-sm">{req.groupId?.name || 'Group'}</p>
                           <p className="text-xs text-slate-400">{req.groupId?.subject}</p>
@@ -952,13 +952,13 @@ export default function StudyGroupFinder() {
           {loading.pool ? (
             <div className="text-center py-16 text-slate-300 font-semibold">Loading pool...</div>
           ) : pool.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
+            <div className="bg-white rounded-2xl border-2 border-emerald-400 p-12 text-center">
               <p className="text-slate-400 font-semibold">No students in the pool</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {pool.map(student => (
-                <div key={student._id} className={`bg-white rounded-2xl border ${student.sosFlag ? 'border-orange-200' : 'border-slate-100'} shadow-sm p-5 flex flex-col`}>
+                <div key={student._id} className={`bg-white rounded-2xl border-2 ${student.sosFlag ? 'border-orange-400' : 'border-emerald-400'} shadow-sm p-5 flex flex-col`}>
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -1031,7 +1031,7 @@ export default function StudyGroupFinder() {
           {loading.myGroup ? (
             <div className="text-center py-16 text-slate-300 font-semibold">Loading...</div>
           ) : !myGroup ? (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center">
+            <div className="bg-white rounded-2xl border-2 border-emerald-400 shadow-sm p-12 text-center">
               <p className="text-4xl mb-3">🔍</p>
               <p className="font-bold text-slate-700 mb-1">You're not in a group yet</p>
               <p className="text-sm text-slate-400 mb-5">Browse groups or set up your profile for AI suggestions</p>
@@ -1042,7 +1042,7 @@ export default function StudyGroupFinder() {
             </div>
           ) : (
             <>
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+              <div className="bg-white rounded-2xl border-2 border-emerald-400 shadow-sm p-6">
                 <div className="flex items-start justify-between">
                   <div>
                     <h2 className="text-xl font-extrabold text-slate-900">{myGroup.name}</h2>
@@ -1238,7 +1238,7 @@ export default function StudyGroupFinder() {
                 )}
               </div>
 
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+              <div className="bg-white rounded-2xl border-2 border-emerald-400 shadow-sm p-5">
                 <h3 className="font-extrabold text-slate-900 mb-3">Members ({myGroup.members?.length})</h3>
                 <div className="space-y-2">
                   {(myGroup.members || []).map(m => (
@@ -1283,7 +1283,7 @@ export default function StudyGroupFinder() {
               </div>
 
               {/* ── Announcement Board ── */}
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="bg-white rounded-2xl border-2 border-emerald-400 shadow-sm overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
                   <div className="flex items-center gap-3">
@@ -1418,7 +1418,7 @@ export default function StudyGroupFinder() {
                         const form = ratingForms[m.userId] || { score: 0, comment: '' };
                         const submitted = groupRatings.find(r => r.toUserId === m.userId);
                         return (
-                          <div key={m.userId} className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                          <div key={m.userId} className="bg-slate-50 rounded-2xl p-4 border-2 border-emerald-400">
                             <div className="flex items-center gap-3 mb-3">
                               <div className="w-9 h-9 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700 font-bold text-sm">
                                 {(m.name || 'M')[0].toUpperCase()}
@@ -1471,7 +1471,7 @@ export default function StudyGroupFinder() {
               )}
 
               {myGroupRole === 'leader' && (
-                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                <div className="bg-white rounded-2xl border-2 border-emerald-400 shadow-sm p-5">
                   <div className="flex items-center gap-2 mb-4">
                     <h3 className="font-extrabold text-slate-900">Join Requests</h3>
                     {groupReqs.filter(r => r.status === 'pending').length > 0 && (
@@ -1487,7 +1487,7 @@ export default function StudyGroupFinder() {
                       {groupReqs.map(req => {
                         const sp = req.studentProfile;
                         return (
-                          <div key={req._id} className={`rounded-2xl border-2 overflow-hidden ${req.status === 'pending' ? 'border-slate-200' : 'border-slate-100'}`}>
+                          <div key={req._id} className={`rounded-2xl border-2 overflow-hidden ${req.status === 'pending' ? 'border-emerald-200' : 'border-emerald-100'}`}>
 
                             {/* Colour bar by status */}
                             <div className={`h-1 w-full ${req.status === 'pending' ? 'bg-orange-400' : req.status === 'accepted' ? 'bg-emerald-400' : req.status === 'declined' ? 'bg-red-300' : 'bg-blue-300'}`} />
@@ -1564,7 +1564,7 @@ export default function StudyGroupFinder() {
                               {!sp && <p className="text-xs text-slate-300 italic">No profile set up</p>}
 
                               {req.message && (
-                                <div className="mt-3 bg-slate-50 rounded-xl px-3 py-2 text-xs text-slate-500 italic border border-slate-100">
+                                <div className="mt-3 bg-slate-50 rounded-xl px-3 py-2 text-xs text-slate-500 italic border border-emerald-100">
                                   "{req.message}"
                                 </div>
                               )}
@@ -1581,7 +1581,7 @@ export default function StudyGroupFinder() {
 
           {/* ── My Collaboration Rating (always visible in MyGroup tab) ── */}
           {myRatingsData && myRatingsData.count > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mt-4">
+            <div className="bg-white rounded-2xl border-2 border-emerald-400 shadow-sm p-5 mt-4">
               <div className="flex items-center gap-2 mb-4">
                 <h3 className="font-extrabold text-slate-900">My Collaboration Rating</h3>
                 <span className="text-xs font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">across all projects</span>
