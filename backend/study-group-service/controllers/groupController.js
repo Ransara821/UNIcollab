@@ -1,5 +1,8 @@
-const StudyGroup = require('../models/StudyGroup');
+const StudyGroup    = require('../models/StudyGroup');
 const StudentProfile = require('../models/StudentProfile');
+const JoinRequest   = require('../models/JoinRequest');
+const Announcement  = require('../models/Announcement');
+const Rating        = require('../models/Rating');
 const { buildSkillVector } = require('../utils/matching');
 
 exports.getGroups = async (req, res) => {
@@ -115,6 +118,31 @@ exports.updateGroup = async (req, res) => {
 
     await group.save();
     res.json(group);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+exports.deleteGroup = async (req, res) => {
+  try {
+    const group = await StudyGroup.findById(req.params.id);
+    if (!group) return res.status(404).json({ message: 'Group not found' });
+    if (group.leader !== req.user.id) return res.status(403).json({ message: 'Not authorized' });
+
+    const memberIds = group.members.map(m => m.userId);
+
+    await Promise.all([
+      StudyGroup.findByIdAndDelete(group._id),
+      JoinRequest.deleteMany({ groupId: group._id }),
+      Announcement.deleteMany({ groupId: group._id }),
+      Rating.deleteMany({ groupId: group._id }),
+      StudentProfile.updateMany(
+        { userId: { $in: memberIds } },
+        { $unset: { groupId: '' }, $set: { status: 'lookingForGroup' } }
+      ),
+    ]);
+
+    res.json({ message: 'Group deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

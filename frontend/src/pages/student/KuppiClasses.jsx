@@ -398,6 +398,12 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
   const [editForm, setEditForm]       = useState(EMPTY_APP);
   const [editErr, setEditErr]         = useState('');
   const [editSubmitting, setEditSubmitting] = useState(false);
+  const [toast, setToast]             = useState({ message: '', type: '' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast({ message: '', type: '' }), 4000);
+  };
 
   const setField = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const setEditField = (k, v) => setEditForm(f => ({ ...f, [k]: v }));
@@ -446,6 +452,7 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
       setIsEditing(false);
       onRefreshRecognition();
       loadAll();
+      showToast('Successfully updated!', 'success');
     } catch (err) {
       setEditErr(err.response?.data?.message || 'Update failed. Please try again.');
     } finally {
@@ -460,6 +467,22 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+
+      {/* ── Toast Notification ── */}
+      {toast.message && (
+        <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-right fade-in duration-300">
+           <div className={`flex items-center gap-3 px-4 py-3 text-white rounded-xl shadow-2xl border ${
+             toast.type === 'error' 
+               ? 'bg-red-600 shadow-red-900/20 border-red-500' 
+               : 'bg-emerald-600 shadow-emerald-900/20 border-emerald-500'
+           }`}>
+             <p className="text-sm font-bold">{toast.message}</p>
+             <button onClick={() => setToast({ message: '', type: '' })} className="ml-4 text-white/70 hover:text-white transition-colors text-xl leading-none">
+                ×
+             </button>
+           </div>
+        </div>
+      )}
 
       {/* ── Edit Modal ── */}
       {isEditing && myApp && (
@@ -745,6 +768,12 @@ function useCRUD(loadFn) {
   const [deleteId, setDeleteId]     = useState(null);
   const [deleting, setDeleting]     = useState(false);
   const [deleteErr, setDeleteErr]   = useState('');
+  const [toast, setToast]           = useState({ message: '', type: '' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast({ message: '', type: '' }), 4000);
+  };
 
   const reload = useCallback(() => {
     setLoading(true);
@@ -757,7 +786,11 @@ function useCRUD(loadFn) {
   useEffect(() => { reload(); }, [reload]);
 
   const handleCreate = async (form) => { await createKuppiClass(form); reload(); };
-  const handleEdit   = async (form) => { await updateKuppiClass(editTarget._id, form); reload(); };
+  const handleEdit   = async (form) => {
+    await updateKuppiClass(editTarget._id, form);
+    reload();
+    showToast('Successfully updated!', 'success');
+  };
   const handleDelete = async (id) => {
     setDeleting(true); setDeleteErr('');
     try {
@@ -774,6 +807,7 @@ function useCRUD(loadFn) {
     showCreate, setShowCreate, deleteId, setDeleteId,
     deleting, deleteErr, setDeleteErr,
     reload, handleCreate, handleEdit, handleDelete,
+    toast, setToast, showToast
   };
 }
 
@@ -785,6 +819,22 @@ function AdminPanel({ filterOptions }) {
 
   return (
     <div>
+      {/* ── Toast Notification ── */}
+      {crud.toast.message && (
+        <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-right fade-in duration-300">
+           <div className={`flex items-center gap-3 px-4 py-3 text-white rounded-xl shadow-2xl border ${
+             crud.toast.type === 'error' 
+               ? 'bg-red-600 shadow-red-900/20 border-red-500' 
+               : 'bg-emerald-600 shadow-emerald-900/20 border-emerald-500'
+           }`}>
+             <p className="text-sm font-bold">{crud.toast.message}</p>
+             <button onClick={() => crud.setToast({ message: '', type: '' })} className="ml-4 text-white/70 hover:text-white transition-colors text-xl leading-none">
+                ×
+             </button>
+           </div>
+        </div>
+      )}
+
       {/* Admin header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -860,6 +910,22 @@ function StudentPanel({ filterOptions }) {
 
   return (
     <div>
+      {/* ── Toast Notification ── */}
+      {crud.toast.message && (
+        <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-right fade-in duration-300">
+           <div className={`flex items-center gap-3 px-4 py-3 text-white rounded-xl shadow-2xl border ${
+             crud.toast.type === 'error' 
+               ? 'bg-red-600 shadow-red-900/20 border-red-500' 
+               : 'bg-emerald-600 shadow-emerald-900/20 border-emerald-500'
+           }`}>
+             <p className="text-sm font-bold">{crud.toast.message}</p>
+             <button onClick={() => crud.setToast({ message: '', type: '' })} className="ml-4 text-white/70 hover:text-white transition-colors text-xl leading-none">
+                ×
+             </button>
+           </div>
+        </div>
+      )}
+
       {/* Student header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">

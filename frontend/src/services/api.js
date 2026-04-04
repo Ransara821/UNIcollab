@@ -48,6 +48,7 @@ export const joinStudyGroup      = (id)     => axios.post(`${API_URL}/study-grou
 export const updateStudyGroup    = (id, data) => axios.patch(`${API_URL}/study-groups/${id}`, data, authHeaders());
 export const toggleGroupStatus   = (id)     => axios.patch(`${API_URL}/study-groups/${id}/status`, {}, authHeaders());
 export const closeStudyGroup     = (id)     => axios.patch(`${API_URL}/study-groups/${id}/close`, {}, authHeaders());
+export const deleteStudyGroup    = (id)     => axios.delete(`${API_URL}/study-groups/${id}`, authHeaders());
 export const updateSkillsNeeded  = (id, data) => axios.patch(`${API_URL}/study-groups/${id}/skills-needed`, data, authHeaders());
 
 // ── Study Groups: Requests ──
