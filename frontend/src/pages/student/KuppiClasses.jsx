@@ -1214,58 +1214,61 @@ export default function KuppiClasses() {
         <div className="absolute bottom-0 left-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl"></div>
         
         <div className="relative z-10">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-            <div className="flex-1">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full mb-4 border border-white/30">
-                <span className="text-lg">🏫</span>
-                <span className="text-xs font-bold text-white uppercase tracking-widest">Peer Learning Center</span>
+          <div className="flex flex-col gap-8">
+            {/* Header Content */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex-1">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full mb-4 border border-white/30">
+                  <span className="text-lg">🏫</span>
+                  <span className="text-xs font-bold text-white uppercase tracking-widest">Peer Learning Center</span>
+                </div>
+                
+                {/* Main heading */}
+                <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
+                  Kuppi Classes
+                </h1>
+                
+                {/* Description */}
+                <p className="text-lg text-white/90 max-w-2xl leading-relaxed font-medium">
+                  Connect with recognized tutors and peer-learners. Host sessions, earn recognition, and master your subjects through interactive tutoring.
+                </p>
               </div>
-              
-              {/* Main heading */}
-              <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
-                Kuppi Classes
-              </h1>
-              
-              {/* Description */}
-              <p className="text-lg text-white/90 max-w-2xl leading-relaxed font-medium">
-                Connect with recognized tutors and peer-learners. Host sessions, earn recognition, and master your subjects through interactive tutoring.
-              </p>
             </div>
             
-            {/* Quick action buttons */}
-            <div className="flex flex-col gap-3 w-full md:w-auto">
+            {/* Quick action buttons - Bottom */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-6 border-t border-white/20">
               <button onClick={() => setActiveTab('browse')}
-                className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
+                className={`px-5 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
                   activeTab === 'browse'
                     ? 'bg-white text-emerald-600 shadow-lg shadow-emerald-200'
                     : 'bg-white/20 text-white border border-white/40 hover:bg-white/30'
                 }`}>
-                <span>🔍</span> Browse Classes
+                <span>🔍</span> <span className="hidden sm:inline">Browse</span>
               </button>
               <button onClick={() => setActiveTab('recognition')}
-                className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
+                className={`px-5 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
                   activeTab === 'recognition'
                     ? 'bg-white text-emerald-600 shadow-lg shadow-emerald-200'
                     : 'bg-white/20 text-white border border-white/40 hover:bg-white/30'
                 }`}>
-                <span>🏅</span> Recognition
+                <span>🏅</span> <span className="hidden sm:inline">Recognition</span>
               </button>
               <button onClick={() => setActiveTab('my-sessions')}
-                className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
+                className={`px-5 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
                   activeTab === 'my-sessions'
                     ? 'bg-white text-emerald-600 shadow-lg shadow-emerald-200'
                     : 'bg-white/20 text-white border border-white/40 hover:bg-white/30'
                 }`}>
-                <span>📋</span> Create Session
+                <span>📋</span> <span className="hidden sm:inline">Create</span>
               </button>
               <button onClick={() => setActiveTab('ratings')}
-                className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
+                className={`px-5 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
                   activeTab === 'ratings'
                     ? 'bg-white text-emerald-600 shadow-lg shadow-emerald-200'
                     : 'bg-white/20 text-white border border-white/40 hover:bg-white/30'
                 }`}>
-                <span>⭐</span> Ratings
+                <span>⭐</span> <span className="hidden sm:inline">Ratings</span>
               </button>
             </div>
           </div>
