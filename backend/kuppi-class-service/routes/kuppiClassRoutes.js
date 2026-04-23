@@ -10,7 +10,7 @@ const {
   getKuppiClassById, createKuppiClass, updateKuppiClass, deleteKuppiClass,
 } = require('../controllers/kuppiClassController');
 
-const { getMyStatus, rateSession }                              = require('../controllers/recognitionController');
+const { getMyStatus, rateSession, getSessionRatings, getMyReceivedRatings }                              = require('../controllers/recognitionController');
 const { applyForRecognition, getAllApplications, getMyApplication, updateMyApplication } = require('../controllers/recognitionApplicationController');
 
 // ── Static / named routes (must come before /:id) ────────────────────────────
@@ -31,7 +31,11 @@ router.post('/',   protect, recognizedOnly, createKuppiClass);        // recogni
 router.put('/:id',    protect, ownerOrAdmin, updateKuppiClass);       // owner or admin only
 router.delete('/:id', protect, ownerOrAdmin, deleteKuppiClass);       // owner or admin only
 
+// Host ratings (must come before /:id)
+router.get('/host/my-ratings', protect, getMyReceivedRatings);
+
 // ── Rating ───────────────────────────────────────────────────────────────────
 router.post('/:id/rate', protect, rateSession);
+router.get('/:id/ratings', getSessionRatings);
 
 module.exports = router;

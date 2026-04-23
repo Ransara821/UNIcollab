@@ -19,7 +19,7 @@ app.use(express.json());
 app.use('/api/kuppi-class', require('./routes/kuppiClassRoutes'));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Kuppi Class Service is running ✅' });
+  res.json({ message: 'Kuppi Class Service is running! ✅' });
 });
 
 const PORT = process.env.PORT || 5002;

@@ -9,11 +9,12 @@ const answerSchema = new mongoose.Schema({
 }, { _id: false });
 
 const quizAttemptSchema = new mongoose.Schema({
-  studentId:     { type: String, required: true },
-  userName:      { type: String, required: true },
-  quizId:        { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', required: true },
-  answers:       [answerSchema],
-  score:         { type: Number, default: 0 },
+  studentId:            { type: String, required: true },
+  userName:             { type: String, required: true },
+  quizId:               { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', required: true },
+  selectedQuestionIds:  [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
+  answers:              [answerSchema],
+  score:                { type: Number, default: 0 },
   totalQuestions:{ type: Number, default: 0 },
   correctCount:  { type: Number, default: 0 },
   wrongCount:    { type: Number, default: 0 },

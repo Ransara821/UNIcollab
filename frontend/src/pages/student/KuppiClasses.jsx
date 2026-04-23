@@ -28,21 +28,21 @@ function StarRating({ onSubmit, submitting }) {
   const [hovered, setHovered]   = useState(0);
   const [selected, setSelected] = useState(0);
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-0.5">
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-1.5">
         {[1,2,3,4,5].map(n => (
           <button key={n}
             onMouseEnter={() => setHovered(n)} onMouseLeave={() => setHovered(0)}
             onClick={() => setSelected(n)}
-            className="text-xl transition-transform hover:scale-110">
-            <span className={(hovered || selected) >= n ? 'text-amber-400' : 'text-slate-200'}>★</span>
+            className="text-2xl transition-all duration-200 hover:scale-125 transform">
+            <span className={(hovered || selected) >= n ? 'text-amber-400 drop-shadow-sm' : 'text-slate-200 opacity-60 hover:opacity-100'}>★</span>
           </button>
         ))}
       </div>
       {selected > 0 && (
         <button disabled={submitting} onClick={() => onSubmit(selected)}
-          className="text-xs font-bold px-3 py-1 bg-amber-400 hover:bg-amber-500 text-white rounded-lg transition disabled:opacity-50">
-          {submitting ? 'Submitting…' : `Submit ${selected}★`}
+          className="text-sm font-bold px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white rounded-xl transition-all duration-200 disabled:opacity-50 shadow-sm shadow-amber-200 transform hover:scale-105">
+          {submitting ? '⏳ Submitting…' : `✓ Submit ${selected}★`}
         </button>
       )}
     </div>
@@ -54,10 +54,79 @@ function SessionFormModal({ title, initialValues = EMPTY_FORM, filterOptions, on
   const [form, setForm]         = useState({ ...EMPTY_FORM, ...initialValues });
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr]           = useState('');
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const [errors, setErrors]     = useState({});
+  const set = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    if (errors[k]) setErrors(e => ({ ...e, [k]: '' }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Title validation
+    if (!form.title || !form.title.trim()) {
+      newErrors.title = 'Title is required';
+    }
+
+    // Subject validation
+    if (!form.subject || !form.subject.trim()) {
+      newErrors.subject = 'Subject is required';
+    }
+
+    // Academic Year validation
+    if (!form.academicYear || !form.academicYear.trim()) {
+      newErrors.academicYear = 'Academic Year is required';
+    }
+
+    // Date validation
+    if (!form.sessionDate) {
+      newErrors.sessionDate = 'Date & Time is required';
+    } else {
+      const selectedDate = new Date(form.sessionDate);
+      const now = new Date();
+      if (selectedDate < now) {
+        newErrors.sessionDate = 'Date cannot be in the past';
+      }
+    }
+
+    // Capacity validation
+    if (!form.capacity) {
+      newErrors.capacity = 'Capacity is required';
+    } else {
+      const capacityNum = Number(form.capacity);
+      if (isNaN(capacityNum) || capacityNum < 1 || capacityNum > 200) {
+        newErrors.capacity = 'Capacity must be between 1 and 200';
+      }
+    }
+
+    // Location validation
+    if (!form.location || !form.location.trim()) {
+      newErrors.location = 'Location is required';
+    }
+
+    // Your Name validation
+    if (!form.postedBy || !form.postedBy.trim()) {
+      newErrors.postedBy = 'Your Name is required';
+    }
+
+    // Description validation
+    if (!form.description || !form.description.trim()) {
+      newErrors.description = 'Description is required';
+    } else if (form.description.trim().length <= 10) {
+      newErrors.description = 'Description must be more than 10 characters';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setSubmitting(true); setErr('');
     try { await onSave(form); onClose(); }
     catch (e) { setErr(e.response?.data?.message || 'Operation failed.'); }
@@ -65,73 +134,84 @@ function SessionFormModal({ title, initialValues = EMPTY_FORM, filterOptions, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8 overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 my-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-extrabold text-slate-800">{title}</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-8 overflow-y-auto">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 my-auto border border-white/20 transform transition-all">
+        <div className="flex items-center justify-between mb-7">
+          <h2 className="text-2xl font-extrabold text-slate-900 bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">{title}</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 transition-all text-2xl leading-none">×</button>
         </div>
-        {err && <p className="text-red-500 text-sm mb-4 font-medium">⚠️ {err}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {err && <p className="text-red-500 text-sm mb-5 font-medium bg-red-50 border border-red-200 rounded-xl px-4 py-3">⚠️ {err}</p>}
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Title *</label>
-            <input required value={form.title} onChange={e => set('title', e.target.value)}
+            <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Title *</label>
+            <input value={form.title} onChange={e => set('title', e.target.value)}
               placeholder="e.g. OOP Exam Prep Session"
-              className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+              className={`w-full px-4 py-3 bg-slate-50 border-2 rounded-xl text-sm focus:outline-none transition-all duration-200 ${errors.title ? 'border-red-500 bg-red-50 focus:border-red-600' : 'border-slate-200 focus:border-emerald-500 focus:bg-white'}`} />
+            {errors.title && <p className="text-red-500 text-xs mt-2 font-medium">✕ {errors.title}</p>}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Subject *</label>
-              <select required value={form.subject} onChange={e => set('subject', e.target.value)}
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+              <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Subject *</label>
+              <select value={form.subject} onChange={e => set('subject', e.target.value)}
+                className={`w-full px-4 py-3 bg-slate-50 border-2 rounded-xl text-sm focus:outline-none transition-all duration-200 ${errors.subject ? 'border-red-500 bg-red-50 focus:border-red-600' : 'border-slate-200 focus:border-emerald-500 focus:bg-white'}`}>
                 <option value="">Select subject</option>
                 {filterOptions.subjects.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
+              {errors.subject && <p className="text-red-500 text-xs mt-2 font-medium">✕ {errors.subject}</p>}
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Academic Year *</label>
-              <select required value={form.academicYear} onChange={e => set('academicYear', e.target.value)}
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500">
+              <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Academic Year *</label>
+              <select value={form.academicYear} onChange={e => set('academicYear', e.target.value)}
+                className={`w-full px-4 py-3 bg-slate-50 border-2 rounded-xl text-sm focus:outline-none transition-all duration-200 ${errors.academicYear ? 'border-red-500 bg-red-50 focus:border-red-600' : 'border-slate-200 focus:border-emerald-500 focus:bg-white'}`}>
                 <option value="">Select year</option>
                 {filterOptions.academicYears.map(y => <option key={y} value={y}>{y}</option>)}
               </select>
+              {errors.academicYear && <p className="text-red-500 text-xs mt-2 font-medium">✕ {errors.academicYear}</p>}
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Date & Time *</label>
-              <input required type="datetime-local" value={form.sessionDate} onChange={e => set('sessionDate', e.target.value)}
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+              <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Date & Time *</label>
+              <input type="datetime-local" value={form.sessionDate} onChange={e => set('sessionDate', e.target.value)}
+                className={`w-full px-4 py-3 bg-slate-50 border-2 rounded-xl text-sm focus:outline-none transition-all duration-200 ${errors.sessionDate ? 'border-red-500 bg-red-50 focus:border-red-600' : 'border-slate-200 focus:border-emerald-500 focus:bg-white'}`} />
+              {errors.sessionDate && <p className="text-red-500 text-xs mt-2 font-medium">✕ {errors.sessionDate}</p>}
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Capacity *</label>
-              <input required type="number" min="1" max="200" value={form.capacity} onChange={e => set('capacity', e.target.value)}
+              <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Capacity *</label>
+              <input type="number" min="1" max="200" value={form.capacity} onChange={e => set('capacity', e.target.value)}
                 placeholder="Max participants"
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                className={`w-full px-4 py-3 bg-slate-50 border-2 rounded-xl text-sm focus:outline-none transition-all duration-200 ${errors.capacity ? 'border-red-500 bg-red-50 focus:border-red-600' : 'border-slate-200 focus:border-emerald-500 focus:bg-white'}`} />
+              {errors.capacity && <p className="text-red-500 text-xs mt-2 font-medium">✕ {errors.capacity}</p>}
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Location</label>
+              <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Location *</label>
               <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="e.g. Lab 2, Block A"
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                className={`w-full px-4 py-3 bg-slate-50 border-2 rounded-xl text-sm focus:outline-none transition-all duration-200 ${errors.location ? 'border-red-500 bg-red-50 focus:border-red-600' : 'border-slate-200 focus:border-emerald-500 focus:bg-white'}`} />
+              {errors.location && <p className="text-red-500 text-xs mt-2 font-medium">✕ {errors.location}</p>}
             </div>
             <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Your Name</label>
+              <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Your Name *</label>
               <input value={form.postedBy} onChange={e => set('postedBy', e.target.value)} placeholder="Display name"
-                className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                className={`w-full px-4 py-3 bg-slate-50 border-2 rounded-xl text-sm focus:outline-none transition-all duration-200 ${errors.postedBy ? 'border-red-500 bg-red-50 focus:border-red-600' : 'border-slate-200 focus:border-emerald-500 focus:bg-white'}`} />
+              {errors.postedBy && <p className="text-red-500 text-xs mt-2 font-medium">✕ {errors.postedBy}</p>}
             </div>
           </div>
           <div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Description</label>
-            <textarea rows={3} value={form.description} onChange={e => set('description', e.target.value)}
-              placeholder="What will be covered?"
-              className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 resize-none" />
+            <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Description *</label>
+            <textarea rows={4} value={form.description} onChange={e => set('description', e.target.value)}
+              placeholder="What will be covered in this session?"
+              className={`w-full px-4 py-3 bg-slate-50 border-2 rounded-xl text-sm focus:outline-none transition-all duration-200 resize-none ${errors.description ? 'border-red-500 bg-red-50 focus:border-red-600' : 'border-slate-200 focus:border-emerald-500 focus:bg-white'}`} />
+            <div className="flex justify-between items-center mt-2.5">
+              <p className={`text-xs font-medium ${form.description.length > 10 ? 'text-emerald-600' : 'text-slate-400'}`}>{form.description.length}/10+ characters required</p>
+              {errors.description && <p className="text-red-500 text-xs font-medium">✕ {errors.description}</p>}
+            </div>
           </div>
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-4 border-t border-slate-100">
             <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
+              className="flex-1 py-3 border-2 border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200">
               Cancel
             </button>
             <button type="submit" disabled={submitting}
-              className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition disabled:opacity-50">
-              {submitting ? 'Saving…' : 'Save Session'}
+              className="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-50 shadow-sm shadow-emerald-200 transform hover:scale-105 disabled:hover:scale-100">
+              {submitting ? '⏳ Saving…' : '✓ Save Session'}
             </button>
           </div>
         </form>
@@ -181,101 +261,102 @@ function BrowseTab({ filterOptions }) {
   return (
     <div>
       {/* Filter Bar */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-6">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-col gap-1 min-w-[200px] flex-1">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Subject</label>
+      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 mb-8 hover:shadow-md transition-shadow duration-200">
+        <div className="flex flex-wrap items-end gap-5">
+          <div className="flex flex-col gap-2 min-w-[200px] flex-1">
+            <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest">Subject</label>
             <select value={filters.subject} onChange={e => handleFilter('subject', e.target.value)}
-              className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-emerald-500">
+              className="px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-emerald-500 focus:bg-white transition-all duration-200 hover:border-slate-300 cursor-pointer">
               <option value="">All Subjects</option>
               {filterOptions.subjects.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
-          <div className="flex flex-col gap-1 min-w-[150px]">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Academic Year</label>
+          <div className="flex flex-col gap-2 min-w-[150px]">
+            <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest">Academic Year</label>
             <select value={filters.academicYear} onChange={e => handleFilter('academicYear', e.target.value)}
-              className="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-emerald-500">
+              className="px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-emerald-500 focus:bg-white transition-all duration-200 hover:border-slate-300 cursor-pointer">
               <option value="">All Years</option>
               {filterOptions.academicYears.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Status</label>
-            <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest">Status</label>
+            <div className="flex gap-2 flex-wrap">
               {['', 'upcoming', 'completed'].map(s => (
                 <button key={s} onClick={() => handleFilter('status', s)}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all ${
+                  className={`px-4 py-3 rounded-xl text-sm font-bold border-2 transition-all duration-200 transform ${
                     filters.status === s
-                      ? s === 'upcoming'  ? 'bg-emerald-500 text-white border-emerald-500'
-                      : s === 'completed' ? 'bg-slate-600 text-white border-slate-600'
-                      : 'bg-slate-900 text-white border-slate-900'
-                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-300'}`}>
-                  {s === '' ? 'All' : s.charAt(0).toUpperCase() + s.slice(1)}
+                      ? s === 'upcoming'  ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-200 scale-105'
+                      : s === 'completed' ? 'bg-slate-600 text-white border-slate-600 shadow-sm shadow-slate-200 scale-105'
+                      : 'bg-slate-900 text-white border-slate-900 shadow-sm shadow-slate-400 scale-105'
+                      : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-slate-400 hover:bg-slate-100'}`}>
+                  {s === '' ? '✓ All' : s === 'upcoming' ? '🚀 ' + s.charAt(0).toUpperCase() + s.slice(1) : '✓ ' + s.charAt(0).toUpperCase() + s.slice(1)}
                 </button>
               ))}
             </div>
           </div>
           {activeCount > 0 && (
             <button onClick={clearFilters}
-              className="px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50 rounded-xl transition border border-transparent hover:border-red-100">
-              Clear ({activeCount})
+              className="px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 hover:border-red-200 rounded-xl transition-all duration-200 border-2 border-transparent hover:border-red-100">
+              ✕ Clear ({activeCount})
             </button>
           )}
         </div>
       </div>
 
       {!loading && !error && (
-        <p className="text-sm text-slate-500 mb-4 font-medium">
-          {classes.length === 0 ? 'No classes match.' : `Showing ${classes.length} class${classes.length !== 1 ? 'es' : ''}`}
+        <p className="text-sm text-slate-600 mb-6 font-semibold flex items-center gap-2">
+          <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+          {classes.length === 0 ? 'No classes match your filters.' : `📊 Showing ${classes.length} class${classes.length !== 1 ? 'es' : ''}`}
         </p>
       )}
 
-      {loading && <div className="py-16 text-center text-slate-400 font-medium">Loading classes…</div>}
-      {error   && <div className="bg-red-50 border border-red-100 text-red-600 rounded-2xl p-5 text-sm font-medium">⚠️ {error}</div>}
+      {loading && <div className="py-16 text-center text-slate-400 font-medium">⏳ Loading amazing classes…</div>}
+      {error   && <div className="bg-red-50 border-2 border-red-200 text-red-600 rounded-2xl p-5 text-sm font-medium">⚠️ {error}</div>}
 
       {!loading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {classes.map(cls => {
             const status    = getStatus(cls.sessionDate);
             const isRated   = ratingState[cls._id] === 'done';
             const isRateErr = ratingState[cls._id] === 'error';
             return (
               <div key={cls._id}
-                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow p-6 flex flex-col gap-4">
+                className="bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all duration-300 p-6 flex flex-col gap-4 transform hover:-translate-y-1">
                 <div className="flex items-center justify-between">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
-                    status === 'upcoming' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
-                    {status}
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest ${
+                    status === 'upcoming' ? 'bg-gradient-to-r from-emerald-100 to-emerald-200 text-emerald-800 shadow-sm shadow-emerald-100' : 'bg-slate-100 text-slate-600'}`}>
+                    {status === 'upcoming' ? '🚀 ' : '✓ '}{status}
                   </span>
-                  <div className="flex gap-1.5">
-                    <span className="px-2.5 py-0.5 bg-blue-50 text-blue-600 rounded-full text-xs font-bold">{cls.academicYear}</span>
-                    {cls.capacity && <span className="px-2.5 py-0.5 bg-violet-50 text-violet-600 rounded-full text-xs font-bold">👥 {cls.capacity}</span>}
+                  <div className="flex gap-2">
+                    <span className="px-3 py-1 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 rounded-full text-xs font-bold shadow-sm shadow-blue-100">📚 {cls.academicYear}</span>
+                    {cls.capacity && <span className="px-3 py-1 bg-gradient-to-r from-violet-50 to-violet-100 text-violet-700 rounded-full text-xs font-bold shadow-sm shadow-violet-100">👥 {cls.capacity}</span>}
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-lg font-extrabold text-slate-800 leading-snug">{cls.title}</h3>
-                  <p className="text-sm text-emerald-600 font-semibold mt-0.5">{cls.subject}</p>
+                  <h3 className="text-lg font-extrabold text-slate-900 leading-snug line-clamp-2">{cls.title}</h3>
+                  <p className="text-sm text-emerald-600 font-bold mt-1.5 flex items-center gap-1">📖 {cls.subject}</p>
                 </div>
-                {cls.description && <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">{cls.description}</p>}
-                <div className="space-y-1.5 text-sm text-slate-500">
-                  <div className="flex items-center gap-2"><span>📅</span><span>{fmt(cls.sessionDate)}</span></div>
-                  <div className="flex items-center gap-2"><span>🕐</span><span>{fmtTime(cls.sessionDate)}</span></div>
-                  {cls.location && <div className="flex items-center gap-2"><span>📍</span><span>{cls.location}</span></div>}
-                  {cls.postedBy && <div className="flex items-center gap-2"><span>👤</span><span>{cls.postedBy}</span></div>}
+                {cls.description && <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 bg-slate-50 rounded-lg p-3 italic">\"{cls.description}\"</p>}
+                <div className="space-y-2 text-sm text-slate-600 py-2">
+                  <div className="flex items-center gap-2 font-medium"><span>📅</span><span>{fmt(cls.sessionDate)}</span></div>
+                  <div className="flex items-center gap-2 font-medium"><span>🕐</span><span>{fmtTime(cls.sessionDate)}</span></div>
+                  {cls.location && <div className="flex items-center gap-2 font-medium"><span>📍</span><span className="truncate">{cls.location}</span></div>}
+                  {cls.postedBy && <div className="flex items-center gap-2 font-medium"><span>👤</span><span className="truncate">{cls.postedBy}</span></div>}
                 </div>
                 {status === 'upcoming' ? (
-                  <button className="mt-auto w-full py-2.5 rounded-xl text-sm font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm shadow-emerald-200 transition">
-                    Enroll Now
+                  <button className="mt-auto w-full py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-md shadow-emerald-200 transition-all duration-200 transform hover:scale-105 active:scale-95">
+                    🎯 Enroll Now
                   </button>
                 ) : (
-                  <div className="mt-auto pt-3 border-t border-slate-100">
+                  <div className="mt-auto pt-4 border-t border-slate-200">
                     {isRated || isRateErr ? (
-                      <p className={`text-xs font-semibold ${isRated ? 'text-emerald-600' : 'text-red-500'}`}>
-                        {ratingFeedback[cls._id]}
+                      <p className={`text-sm font-bold flex items-center gap-2 ${isRated ? 'text-emerald-600' : 'text-red-500'}`}>
+                        {isRated ? '✓ ' : '✕ '}{ratingFeedback[cls._id]}
                       </p>
                     ) : (
                       <>
-                        <p className="text-xs font-bold text-slate-500 mb-1.5">Rate this session</p>
+                        <p className="text-xs font-extrabold text-slate-700 mb-3 uppercase tracking-widest">⭐ Rate this session</p>
                         <StarRating onSubmit={r => handleRate(cls._id, r)} submitting={ratingState[cls._id] === 'submitting'} />
                       </>
                     )}
@@ -288,12 +369,13 @@ function BrowseTab({ filterOptions }) {
       )}
 
       {!loading && !error && classes.length === 0 && (
-        <div className="bg-white rounded-2xl border border-slate-100 p-16 text-center">
-          <p className="text-4xl mb-3">🔍</p>
-          <p className="text-slate-600 font-semibold">No Kuppi classes match your filters.</p>
+        <div className="bg-gradient-to-br from-white to-slate-50 rounded-3xl border-2 border-dashed border-slate-200 p-16 text-center">
+          <p className="text-5xl mb-4">🔍</p>
+          <p className="text-slate-700 font-bold text-lg mb-2">No Kuppi classes match your filters.</p>
+          <p className="text-slate-500 mb-6">Try adjusting your search criteria or check back later!</p>
           <button onClick={clearFilters}
-            className="mt-4 px-5 py-2 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-600 transition">
-            Clear Filters
+            className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-bold hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-md shadow-emerald-200 transform hover:scale-105">
+            ✕ Clear Filters
           </button>
         </div>
       )}
@@ -316,6 +398,12 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
   const [editForm, setEditForm]       = useState(EMPTY_APP);
   const [editErr, setEditErr]         = useState('');
   const [editSubmitting, setEditSubmitting] = useState(false);
+  const [toast, setToast]             = useState({ message: '', type: '' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast({ message: '', type: '' }), 4000);
+  };
 
   const setField = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const setEditField = (k, v) => setEditForm(f => ({ ...f, [k]: v }));
@@ -364,6 +452,7 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
       setIsEditing(false);
       onRefreshRecognition();
       loadAll();
+      showToast('Successfully updated!', 'success');
     } catch (err) {
       setEditErr(err.response?.data?.message || 'Update failed. Please try again.');
     } finally {
@@ -379,50 +468,66 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
 
+      {/* ── Toast Notification ── */}
+      {toast.message && (
+        <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-right fade-in duration-300">
+           <div className={`flex items-center gap-3 px-4 py-3 text-white rounded-xl shadow-2xl border ${
+             toast.type === 'error' 
+               ? 'bg-red-600 shadow-red-900/20 border-red-500' 
+               : 'bg-emerald-600 shadow-emerald-900/20 border-emerald-500'
+           }`}>
+             <p className="text-sm font-bold">{toast.message}</p>
+             <button onClick={() => setToast({ message: '', type: '' })} className="ml-4 text-white/70 hover:text-white transition-colors text-xl leading-none">
+                ×
+             </button>
+           </div>
+        </div>
+      )}
+
       {/* ── Edit Modal ── */}
       {isEditing && myApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 my-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-extrabold text-slate-800">Edit Recognition Details</h2>
-              <button onClick={() => setIsEditing(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4 py-8 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8 my-auto border border-white/20 transform transition-all">
+            <div className="flex items-center justify-between mb-7">
+              <h2 className="text-2xl font-extrabold text-slate-900 bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Edit Recognition Details</h2>
+              <button onClick={() => setIsEditing(false)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 transition-all text-2xl leading-none">×</button>
             </div>
-            {editErr && <p className="text-red-500 text-sm mb-4 font-medium">⚠️ {editErr}</p>}
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {editErr && <p className="text-red-500 text-sm mb-5 font-medium bg-red-50 border border-red-200 rounded-xl px-4 py-3">⚠️ {editErr}</p>}
+            <form onSubmit={handleEditSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Full Name *</label>
+                  <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Full Name *</label>
                   <input required value={editForm.name} onChange={e => setEditField('name', e.target.value)}
                     placeholder="e.g. Kasun Perera"
-                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all duration-200 focus:border-emerald-500 focus:bg-white" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Academic Year *</label>
+                  <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Academic Year *</label>
                   <input required value={editForm.year} onChange={e => setEditField('year', e.target.value)}
                     placeholder="e.g. Year 2"
-                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all duration-200 focus:border-emerald-500 focus:bg-white" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Specialization *</label>
+                  <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Specialization *</label>
                   <input required value={editForm.specialization} onChange={e => setEditField('specialization', e.target.value)}
                     placeholder="e.g. Computer Science"
-                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all duration-200 focus:border-emerald-500 focus:bg-white" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Qualification *</label>
+                  <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Qualification *</label>
                   <input required value={editForm.qualification} onChange={e => setEditField('qualification', e.target.value)}
                     placeholder="e.g. BSc (Hons) in IT"
-                    className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all duration-200 focus:border-emerald-500 focus:bg-white" />
                 </div>
               </div>
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 pt-4 border-t border-slate-100">
                 <button type="button" onClick={() => setIsEditing(false)} disabled={editSubmitting}
-                  className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50">
+                  className="flex-1 py-3 border-2 border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 disabled:opacity-50">
                   Cancel
                 </button>
                 <button type="submit" disabled={editSubmitting}
-                  className="flex-1 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition disabled:opacity-50">
-                  {editSubmitting ? 'Saving…' : 'Save Changes'}
+                  className="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-50 shadow-sm shadow-emerald-200 transform hover:scale-105 disabled:hover:scale-100">
+                  {editSubmitting ? '⏳ Saving…' : '✓ Save Changes'}
                 </button>
               </div>
             </form>
@@ -430,119 +535,119 @@ function RecognitionTab({ recognition, onRefreshRecognition }) {
         </div>
       )}
       {myApp === undefined ? (
-        <div className="py-10 text-center text-slate-400">Loading…</div>
+        <div className="py-12 text-center text-slate-400 font-medium">⏳ Loading…</div>
       ) : myApp && hasCompletedRequired ? (
         /* Already applied and completed required sessions — show recognition card */
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
-          <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-2 border-emerald-200 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-2xl shadow-sm">🏅</div>
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-3xl flex items-center justify-center text-3xl shadow-md shadow-emerald-300 transform -rotate-12 animate-bounce">🏅</div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 mb-0.5">Recognition Granted</p>
-                <h2 className="text-xl font-extrabold text-emerald-800">You are a Recognized Tutor</h2>
-                <p className="text-sm text-emerald-600 mt-0.5">You can now create and manage Kuppi sessions.</p>
+                <p className="text-xs font-extrabold uppercase tracking-widest text-emerald-700 mb-1">✓ Recognition Granted</p>
+                <h2 className="text-2xl font-extrabold text-emerald-900">Recognized Tutor</h2>
+                <p className="text-sm text-emerald-700 mt-1 font-medium">You can now create and manage Kuppi sessions!</p>
               </div>
             </div>
             <button onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-white hover:bg-emerald-50 border border-emerald-200 text-emerald-600 text-xs font-bold rounded-xl transition whitespace-nowrap">
-              ✏️ Edit
+              className="px-5 py-3 bg-white hover:bg-emerald-100 border-2 border-emerald-300 text-emerald-700 text-sm font-bold rounded-xl transition-all duration-200 whitespace-nowrap transform hover:scale-105">
+              ✏️ Edit Detail
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             {[
-              { label: 'Name',           value: myApp.name },
-              { label: 'Year',           value: myApp.year },
-              { label: 'Specialization', value: myApp.specialization },
-              { label: 'Qualification',  value: myApp.qualification },
-            ].map(({ label, value }) => (
-              <div key={label} className="bg-white/70 rounded-xl px-4 py-3 border border-emerald-100">
-                <p className="text-xs font-bold text-emerald-600 uppercase tracking-wide mb-0.5">{label}</p>
-                <p className="font-semibold text-slate-800">{value}</p>
+              { label: 'Name',           value: myApp.name, icon: '👤' },
+              { label: 'Year',           value: myApp.year, icon: '📚' },
+              { label: 'Specialization', value: myApp.specialization, icon: '🎓' },
+              { label: 'Qualification',  value: myApp.qualification, icon: '📜' },
+            ].map(({ label, value, icon }) => (
+              <div key={label} className="bg-white/80 hover:bg-white rounded-2xl px-4 py-4 border-2 border-emerald-100 hover:border-emerald-300 transition-all duration-200">
+                <p className="text-xs font-extrabold text-emerald-700 uppercase tracking-widest mb-1 flex items-center gap-1">{icon} {label}</p>
+                <p className="font-bold text-slate-800 truncate">{value}</p>
               </div>
             ))}
           </div>
         </div>
       ) : myApp && !hasCompletedRequired ? (
         /* Applied but not yet completed required sessions — show progress */
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
-          <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-200 rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow">
+          <div className="flex items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-2xl shadow-sm">⏳</div>
+              <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-3xl flex items-center justify-center text-3xl shadow-md shadow-amber-300">⏳</div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-0.5">Application Pending</p>
-                <h2 className="text-xl font-extrabold text-amber-800">Complete {minSessions} Sessions</h2>
-                <p className="text-sm text-amber-600 mt-0.5">You need to complete {minSessions - completedSessions} more session(s) to be recognized.</p>
+                <p className="text-xs font-extrabold uppercase tracking-widest text-amber-700 mb-1">⚡ Pending Recognition</p>
+                <h2 className="text-2xl font-extrabold text-amber-900">Complete {minSessions} Sessions</h2>
+                <p className="text-sm text-amber-700 mt-1 font-medium">Need {minSessions - completedSessions} more session(s) for recognition</p>
               </div>
             </div>
             <button onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-white hover:bg-amber-50 border border-amber-200 text-amber-600 text-xs font-bold rounded-xl transition whitespace-nowrap">
-              ✏️ Edit
+              className="px-5 py-3 bg-white hover:bg-amber-100 border-2 border-amber-300 text-amber-700 text-sm font-bold rounded-xl transition-all duration-200 whitespace-nowrap transform hover:scale-105">
+              ✏️ Edit Details
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-6">
             {[
-              { label: 'Name',           value: myApp.name },
-              { label: 'Year',           value: myApp.year },
-              { label: 'Specialization', value: myApp.specialization },
-              { label: 'Qualification',  value: myApp.qualification },
-            ].map(({ label, value }) => (
-              <div key={label} className="bg-white/70 rounded-xl px-4 py-3 border border-amber-100">
-                <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-0.5">{label}</p>
-                <p className="font-semibold text-slate-800">{value}</p>
+              { label: 'Name',           value: myApp.name, icon: '👤' },
+              { label: 'Year',           value: myApp.year, icon: '📚' },
+              { label: 'Specialization', value: myApp.specialization, icon: '🎓' },
+              { label: 'Qualification',  value: myApp.qualification, icon: '📜' },
+            ].map(({ label, value, icon }) => (
+              <div key={label} className="bg-white/80 hover:bg-white rounded-2xl px-4 py-4 border-2 border-amber-100 hover:border-amber-300 transition-all duration-200">
+                <p className="text-xs font-extrabold text-amber-700 uppercase tracking-widest mb-1 flex items-center gap-1">{icon} {label}</p>
+                <p className="font-bold text-slate-800 truncate">{value}</p>
               </div>
             ))}
           </div>
-          <div className="bg-white rounded-xl px-4 py-3 border border-amber-100">
-            <p className="text-sm font-semibold text-slate-700 mb-2">Completed Sessions: {completedSessions} / {minSessions}</p>
-            <div className="w-full bg-amber-100 rounded-full h-2.5">
-              <div className="bg-amber-500 h-2.5 rounded-full transition-all duration-500"
+          <div className="bg-white/80 rounded-2xl px-5 py-4 border-2 border-amber-100 mt-6">
+            <p className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">📊 Progress: {completedSessions} / {minSessions} sessions</p>
+            <div className="w-full bg-amber-100 rounded-full h-3">
+              <div className="bg-gradient-to-r from-amber-400 to-amber-600 h-3 rounded-full transition-all duration-500 shadow-sm shadow-amber-300"
                 style={{ width: `${Math.min(100, (completedSessions / minSessions) * 100)}%` }} />
             </div>
           </div>
         </div>
       ) : (
         /* Not yet applied — show recognition form */
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-xl">📋</div>
+        <div className="bg-white rounded-3xl border-2 border-slate-100 shadow-sm p-8 hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-4 mb-7">
+            <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl flex items-center justify-center text-2xl shadow-sm">📋</div>
             <div>
-              <h2 className="text-lg font-extrabold text-slate-800">Apply for Recognition</h2>
-              <p className="text-sm text-slate-400 mt-0.5">Fill in your details to become a recognized Kuppi tutor instantly.</p>
+              <h2 className="text-2xl font-extrabold text-slate-900">Apply for Recognition</h2>
+              <p className="text-sm text-slate-600 mt-1 font-medium">Fill in your details to become a recognized tutor instantly 🚀</p>
             </div>
           </div>
 
-          {formErr && <p className="text-red-500 text-sm mb-4 font-medium">⚠️ {formErr}</p>}
+          {formErr && <p className="text-red-500 text-sm mb-6 font-medium bg-red-50 border border-red-200 rounded-xl px-4 py-3">⚠️ {formErr}</p>}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Full Name *</label>
+                <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Full Name *</label>
                 <input required value={form.name} onChange={e => setField('name', e.target.value)}
                   placeholder="e.g. Kasun Perera"
-                  className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all duration-200 focus:border-emerald-500 focus:bg-white" />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Academic Year *</label>
+                <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Academic Year *</label>
                 <input required value={form.year} onChange={e => setField('year', e.target.value)}
                   placeholder="e.g. Year 2"
-                  className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all duration-200 focus:border-emerald-500 focus:bg-white" />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Specialization *</label>
+                <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Specialization *</label>
                 <input required value={form.specialization} onChange={e => setField('specialization', e.target.value)}
                   placeholder="e.g. Computer Science"
-                  className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all duration-200 focus:border-emerald-500 focus:bg-white" />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Qualification *</label>
+                <label className="text-xs font-extrabold text-slate-600 uppercase tracking-widest block mb-2">Qualification *</label>
                 <input required value={form.qualification} onChange={e => setField('qualification', e.target.value)}
                   placeholder="e.g. BSc (Hons) in IT"
-                  className="mt-1 w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500" />
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none transition-all duration-200 focus:border-emerald-500 focus:bg-white" />
               </div>
             </div>
             <button type="submit" disabled={submitting}
-              className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition disabled:opacity-50 shadow-sm shadow-emerald-200">
-              {submitting ? 'Submitting…' : 'Submit & Get Recognized'}
+              className="w-full py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-50 shadow-md shadow-emerald-200 transform hover:scale-105 disabled:hover:scale-100">
+              {submitting ? '⏳ Submitting…' : '🚀 Submit & Get Recognized'}
             </button>
           </form>
         </div>
@@ -663,6 +768,12 @@ function useCRUD(loadFn) {
   const [deleteId, setDeleteId]     = useState(null);
   const [deleting, setDeleting]     = useState(false);
   const [deleteErr, setDeleteErr]   = useState('');
+  const [toast, setToast]           = useState({ message: '', type: '' });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast({ message: '', type: '' }), 4000);
+  };
 
   const reload = useCallback(() => {
     setLoading(true);
@@ -675,13 +786,18 @@ function useCRUD(loadFn) {
   useEffect(() => { reload(); }, [reload]);
 
   const handleCreate = async (form) => { await createKuppiClass(form); reload(); };
-  const handleEdit   = async (form) => { await updateKuppiClass(editTarget._id, form); reload(); };
+  const handleEdit   = async (form) => {
+    await updateKuppiClass(editTarget._id, form);
+    reload();
+    showToast('Successfully updated!', 'success');
+  };
   const handleDelete = async (id) => {
     setDeleting(true); setDeleteErr('');
     try {
       await deleteKuppiClass(id);
       setSessions(s => s.filter(c => c._id !== id));
       setDeleteId(null);
+      showToast('Successfully deleted!', 'error');
     } catch (err) {
       setDeleteErr(err.response?.data?.message || 'Delete failed.');
     } finally { setDeleting(false); }
@@ -692,6 +808,7 @@ function useCRUD(loadFn) {
     showCreate, setShowCreate, deleteId, setDeleteId,
     deleting, deleteErr, setDeleteErr,
     reload, handleCreate, handleEdit, handleDelete,
+    toast, setToast, showToast
   };
 }
 
@@ -703,6 +820,22 @@ function AdminPanel({ filterOptions }) {
 
   return (
     <div>
+      {/* ── Toast Notification ── */}
+      {crud.toast.message && (
+        <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-right fade-in duration-300">
+           <div className={`flex items-center gap-3 px-4 py-3 text-white rounded-xl shadow-2xl border ${
+             crud.toast.type === 'error' 
+               ? 'bg-red-600 shadow-red-900/20 border-red-500' 
+               : 'bg-emerald-600 shadow-emerald-900/20 border-emerald-500'
+           }`}>
+             <p className="text-sm font-bold">{crud.toast.message}</p>
+             <button onClick={() => crud.setToast({ message: '', type: '' })} className="ml-4 text-white/70 hover:text-white transition-colors text-xl leading-none">
+                ×
+             </button>
+           </div>
+        </div>
+      )}
+
       {/* Admin header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -778,6 +911,22 @@ function StudentPanel({ filterOptions }) {
 
   return (
     <div>
+      {/* ── Toast Notification ── */}
+      {crud.toast.message && (
+        <div className="fixed top-6 right-6 z-50 animate-in slide-in-from-right fade-in duration-300">
+           <div className={`flex items-center gap-3 px-4 py-3 text-white rounded-xl shadow-2xl border ${
+             crud.toast.type === 'error' 
+               ? 'bg-red-600 shadow-red-900/20 border-red-500' 
+               : 'bg-emerald-600 shadow-emerald-900/20 border-emerald-500'
+           }`}>
+             <p className="text-sm font-bold">{crud.toast.message}</p>
+             <button onClick={() => crud.setToast({ message: '', type: '' })} className="ml-4 text-white/70 hover:text-white transition-colors text-xl leading-none">
+                ×
+             </button>
+           </div>
+        </div>
+      )}
+
       {/* Student header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -1059,36 +1208,98 @@ export default function KuppiClasses() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      {/* ── Page Header ── */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-extrabold text-slate-900">🎓 Kuppi Classes</h1>
-        <p className="text-slate-500 mt-1">Browse, manage, and enroll in peer-to-peer tutoring sessions.</p>
+      {/* ── Hero Banner ── */}
+      <div className="mb-12 rounded-3xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 p-10 shadow-lg overflow-hidden relative">
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full -mr-48 -mt-24 blur-3xl"></div>
+        <div className="absolute bottom-0 left-1/4 w-72 h-72 bg-white/5 rounded-full blur-3xl"></div>
+        
+        <div className="relative z-10">
+          <div className="flex flex-col gap-8">
+            {/* Header Content */}
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex-1">
+                {/* Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full mb-4 border border-white/30">
+                  <span className="text-lg">🏫</span>
+                  <span className="text-xs font-bold text-white uppercase tracking-widest">Peer Learning Center</span>
+                </div>
+                
+                {/* Main heading */}
+                <h1 className="text-5xl md:text-6xl font-black text-white mb-4 leading-tight">
+                  Kuppi Classes
+                </h1>
+                
+                {/* Description */}
+                <p className="text-lg text-white/90 max-w-2xl leading-relaxed font-medium">
+                  Connect with recognized tutors and peer-learners. Host sessions, earn recognition, and master your subjects through interactive tutoring.
+                </p>
+              </div>
+            </div>
+            
+            {/* Quick action buttons - Bottom */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-6 border-t border-white/20">
+              <button onClick={() => setActiveTab('browse')}
+                className={`px-5 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
+                  activeTab === 'browse'
+                    ? 'bg-white text-emerald-600 shadow-lg shadow-emerald-200'
+                    : 'bg-white/20 text-white border border-white/40 hover:bg-white/30'
+                }`}>
+                <span>🔍</span> <span className="hidden sm:inline">Browse</span>
+              </button>
+              <button onClick={() => setActiveTab('recognition')}
+                className={`px-5 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
+                  activeTab === 'recognition'
+                    ? 'bg-white text-emerald-600 shadow-lg shadow-emerald-200'
+                    : 'bg-white/20 text-white border border-white/40 hover:bg-white/30'
+                }`}>
+                <span>🏅</span> <span className="hidden sm:inline">Recognition</span>
+              </button>
+              <button onClick={() => setActiveTab('my-sessions')}
+                className={`px-5 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
+                  activeTab === 'my-sessions'
+                    ? 'bg-white text-emerald-600 shadow-lg shadow-emerald-200'
+                    : 'bg-white/20 text-white border border-white/40 hover:bg-white/30'
+                }`}>
+                <span>📋</span> <span className="hidden sm:inline">Create</span>
+              </button>
+              <button onClick={() => setActiveTab('ratings')}
+                className={`px-5 py-3 rounded-xl font-bold text-sm transition-all duration-200 transform hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap ${
+                  activeTab === 'ratings'
+                    ? 'bg-white text-emerald-600 shadow-lg shadow-emerald-200'
+                    : 'bg-white/20 text-white border border-white/40 hover:bg-white/30'
+                }`}>
+                <span>⭐</span> <span className="hidden sm:inline">Ratings</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* ── Tab Navigation (matches Study Group Finder style) ── */}
-      <div className="flex flex-wrap gap-2 mb-8">
+      {/* ── Tab Navigation (compact) ── */}
+      <div className="flex flex-wrap gap-2 mb-10 hidden">
         {TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all border ${
+            className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm font-bold transition-all border-2 transform ${
               activeTab === tab.id
-                ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-200'
-                : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-300 hover:text-emerald-600'
+                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-200 scale-105'
+                : 'bg-white text-slate-700 border-slate-200 hover:border-emerald-300 hover:text-emerald-600 hover:shadow-sm'
             }`}>
             <span>{tab.icon}</span>
             <span>{tab.label}</span>
             {/* Badge: recognition status pill on the Recognition tab */}
             {tab.id === 'recognition' && recognition && (
-              <span className={`ml-0.5 px-2 py-0.5 rounded-full text-xs font-bold ${
-                activeTab === tab.id ? 'bg-white/20 text-white' : isRecognized ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-600'
+              <span className={`ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold text-white ${
+                activeTab === tab.id ? 'bg-white/30' : isRecognized ? 'bg-emerald-500' : 'bg-amber-500'
               }`}>
-                {isRecognized ? 'Recognized' : 'Normal'}
+                {isRecognized ? '✓ Recognized' : '⏳ Pending'}
               </span>
             )}
             {/* Lock badge on Create Session tab if no access */}
             {tab.id === 'my-sessions' && !isAdmin && !isRecognized && (
-              <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-xs font-bold ${
-                activeTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                🔒
+              <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === tab.id ? 'bg-white/30 text-white' : 'bg-red-100 text-red-600'}`}>
+                🔒 Locked
               </span>
             )}
           </button>
