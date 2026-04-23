@@ -1,7 +1,6 @@
 const KuppiClass    = require('../models/KuppiClass');
 const Rating        = require('../models/Rating');
 const StudentProfile = require('../models/StudentProfile');
-const Enrollment    = require('../models/Enrollment');
 const { RECOGNITION_THRESHOLDS } = require('../constants/filterOptions');
 
 const { MIN_COMPLETED_SESSIONS, MIN_AVERAGE_RATING } = RECOGNITION_THRESHOLDS;
@@ -93,32 +92,16 @@ exports.rateSession = async (req, res) => {
     const kuppiClass = await KuppiClass.findById(req.params.id);
     if (!kuppiClass) return res.status(404).json({ message: 'Session not found.' });
 
-    // Check if session has a host assigned
-    let hostId = kuppiClass.postedById;
-    
-    if (!hostId) {
-      return res.status(400).json({ 
-        message: 'This session has no assigned host and cannot be rated.',
-        detail: 'The session must have a host (tutor) assigned to be ratable. Please contact the session creator to resolve this issue.'
-      });
+    if (!kuppiClass.postedById) {
+      return res.status(400).json({ message: 'This session has no assigned host and cannot be rated.' });
     }
 
     if (new Date(kuppiClass.sessionDate) >= new Date()) {
       return res.status(400).json({ message: 'Can only rate completed sessions.' });
     }
 
-    if (hostId === req.user.id) {
+    if (kuppiClass.postedById === req.user.id) {
       return res.status(400).json({ message: 'Cannot rate your own session.' });
-    }
-
-    // Check if student is enrolled in the session with accepted status
-    const enrollment = await Enrollment.findOne({
-      studentId: req.user.id,
-      kuppiClassId: req.params.id,
-      status: 'accepted'
-    });
-    if (!enrollment) {
-      return res.status(403).json({ message: 'You can only rate sessions you are enrolled in with accepted status.' });
     }
 
     const existing = await Rating.findOne({ kuppiClassId: req.params.id, ratedBy: req.user.id });
@@ -129,13 +112,13 @@ exports.rateSession = async (req, res) => {
     await Rating.create({
       kuppiClassId: kuppiClass._id,
       ratedBy: req.user.id,
-      hostId: hostId,
+      hostId: kuppiClass.postedById,
       rating: Number(rating),
     });
 
     // Auto-evaluate the host's recognition after every new rating
-    if (hostId) {
-      await evaluateRecognition(hostId);
+    if (kuppiClass.postedById) {
+      await evaluateRecognition(kuppiClass.postedById);
     }
 
     res.status(201).json({ message: 'Rating submitted. Host recognition re-evaluated.' });
@@ -144,49 +127,5 @@ exports.rateSession = async (req, res) => {
       return res.status(409).json({ message: 'You have already rated this session.' });
     }
     res.status(500).json({ message: 'Failed to submit rating.', error: err.message });
-  }
-};
-
-// GET /api/kuppi-class/:id/ratings - Get all ratings for a session
-exports.getSessionRatings = async (req, res) => {
-  try {
-    const ratings = await Rating.find({ kuppiClassId: req.params.id })
-      .sort({ createdAt: -1 });
-
-    const kuppiClass = await KuppiClass.findById(req.params.id);
-    if (!kuppiClass) {
-      return res.status(404).json({ message: 'Session not found.' });
-    }
-
-    res.json({
-      sessionId: req.params.id,
-      sessionTitle: kuppiClass.title,
-      totalRatings: ratings.length,
-      averageRating: ratings.length > 0 
-        ? (ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length).toFixed(2)
-        : 0,
-      ratings
-    });
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch ratings.', error: err.message });
-  }
-};
-
-// GET /api/kuppi-class/host/my-ratings - Get all ratings received by the current user (host)
-exports.getMyReceivedRatings = async (req, res) => {
-  try {
-    const ratings = await Rating.find({ hostId: req.user.id })
-      .sort({ createdAt: -1 });
-
-    res.json({
-      hostId: req.user.id,
-      totalRatings: ratings.length,
-      averageRating: ratings.length > 0
-        ? (ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length).toFixed(2)
-        : 0,
-      ratings
-    });
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch your ratings.', error: err.message });
   }
 };

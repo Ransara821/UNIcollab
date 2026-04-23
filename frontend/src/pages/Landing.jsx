@@ -8,24 +8,28 @@ export default function Landing() {
   const [feedbacks, setFeedbacks] = useState([]);
 
   useEffect(() => {
-    getPublicFeedbacks().then(res => setFeedbacks(res.data.slice(0, 3))).catch(() => {});
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    getPublicFeedbacks()
+      .then(res => {
+        // Show up to 3 feedbacks
+        setFeedbacks(res.data.slice(0, 3));
+      })
+      .catch(err => console.error("Could not load feedbacks:", err));
   }, []);
 
   return (
     <div className="min-h-screen font-sans text-slate-800 bg-white selection:bg-emerald-100 selection:text-emerald-900">
 
-      {/* ── Navbar ── */}
-      <nav className={`fixed w-full top-0 z-50 transition-all duration-300 ${scrolled ? 'py-3 bg-white/95 backdrop-blur-md shadow-lg shadow-slate-200/40 border-b border-slate-100' : 'py-5 bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 hover:opacity-85 transition-opacity">
+      {/* ── Navbar ───────────────────────────────────── */}
+      <nav className="fixed w-full top-0 z-50 px-6 py-4 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm transition-all duration-300">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-400 shadow-md shadow-emerald-500/20">
               <BookMarked size={18} color="white" />
             </div>
-            <span className="text-2xl font-black text-slate-900 tracking-tight">UNI<span className="text-emerald-500">collab</span></span>
-          </Link>
+            <span className="text-2xl font-black text-slate-900 tracking-tight">
+              UNI<span className="text-emerald-500">collab</span>
+            </span>
+          </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-slate-600">
             <a href="#features" className="hover:text-emerald-500 transition-colors">Features</a>
             <a href="#academics" className="hover:text-emerald-500 transition-colors">Academics</a>
@@ -42,16 +46,17 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* ── Hero ── */}
-      <section id="home" className="pt-24 lg:pt-28 pb-24 relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/40">
-        <div className="absolute top-0 right-0 w-[900px] h-[900px] bg-gradient-to-br from-emerald-100/25 to-teal-100/15 rounded-full blur-[130px] -z-10 translate-x-1/3 -translate-y-1/3 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-emerald-50/50 rounded-full blur-[100px] -z-10 -translate-x-1/4 translate-y-1/4 pointer-events-none" />
+      {/* ── Hero section (Matching image aesthetic) ──────── */}
+      <section id="home" className="pt-32 lg:pt-40 pb-20 relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+        {/* Soft decorative blobs */}
+        <div className="absolute top-1/4 left-0 w-[500px] h-[500px] bg-emerald-100/40 rounded-full blur-[100px] -z-10 mix-blend-multiply" />
+        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-teal-50/60 rounded-full blur-[120px] -z-10 mix-blend-multiply" />
 
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-emerald-700 bg-emerald-100/80 border border-emerald-200 mb-8">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="relative z-10 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold text-emerald-700 bg-emerald-100/50 border border-emerald-200 mb-8 mx-auto lg:mx-0">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              #1 Student Academic Collaboration Platform
+              #1 Student Academic Platform
             </div>
 
             <h1 className="text-5xl lg:text-7xl font-extrabold text-slate-900 leading-[1.1] tracking-tight mb-6">
@@ -62,9 +67,11 @@ export default function Landing() {
                 </svg>
               </span> <br className="hidden lg:block"/> Future Starts <br/> With UNIcollab
             </h1>
+
             <p className="text-lg text-slate-500 max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed font-medium">
-              Join university students connecting for peer tutoring, sharing study materials, and mastering every semester — all in one unified platform.
+              Join thousands of university students connecting for peer tutoring, sharing study materials, and tracking academic progress in one place.
             </p>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link to="/register"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full font-bold text-white text-base transition-all transform hover:-translate-y-1 shadow-xl shadow-emerald-500/20"
@@ -88,7 +95,6 @@ export default function Landing() {
                   <p className="font-extrabold text-slate-900">200+ Students</p>
                   <p className="text-slate-500 font-medium">Already joined</p>
                 </div>
-                <p className="text-sm text-slate-500 font-medium">Trusted by <span className="font-bold text-slate-800">200+</span> students</p>
               </div>
             </div>
           </div>
@@ -106,8 +112,8 @@ export default function Landing() {
               <div className="absolute top-1/4 -right-8 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4 animate-bounce hover:animate-none transition-all cursor-default z-20" style={{ animationDuration: '3s' }}>
                 <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center"><CheckCircle2 className="text-emerald-600" size={20}/></div>
                 <div>
-                  <p className="font-bold text-slate-800 text-sm">Quiz Passed!</p>
-                  <p className="text-xs text-slate-500">Score: 92/100</p>
+                  <p className="font-bold text-slate-800 text-sm">Target Met!</p>
+                  <p className="text-xs text-slate-500">GPA Improved</p>
                 </div>
               </div>
 
@@ -115,7 +121,7 @@ export default function Landing() {
                 <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center"><Users className="text-teal-600" size={20}/></div>
                 <div>
                   <p className="font-bold text-slate-800 text-sm">Study Group</p>
-                  <p className="text-xs text-slate-500">5 members online</p>
+                  <p className="text-xs text-slate-500">5 members active</p>
                 </div>
               </div>
             </div>
@@ -123,52 +129,51 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Stats Bar ── */}
-      <section className="py-14 bg-white border-y border-slate-100">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4">
+      {/* ── Features List (Horizontal) ───────────────── */}
+      <section className="py-12 bg-white border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-6">
+          <p className="text-center font-bold text-sm text-emerald-600 uppercase tracking-widest mb-8">Trusted by academic achievers</p>
+          <div className="flex flex-wrap justify-center gap-6 lg:gap-12">
             {[
-              { value: '200+', label: 'Active Students', icon: Users, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-              { value: '150+', label: 'Resources Shared', icon: BookOpen, color: 'text-teal-500', bg: 'bg-teal-50' },
-              { value: '4', label: 'Academic Years', icon: GraduationCap, color: 'text-blue-500', bg: 'bg-blue-50' },
-              { value: '50+', label: 'Quizzes Available', icon: BrainCircuit, color: 'text-purple-500', bg: 'bg-purple-50' },
-            ].map(({ value, label, icon: Icon, color, bg }) => (
-              <div key={label} className="flex flex-col items-center text-center group">
-                <div className={`w-12 h-12 rounded-2xl ${bg} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                  <Icon size={22} className={color} />
+              { icon: BookOpen, text: 'Resource Hub', color: 'text-emerald-500', bg: 'bg-emerald-50' },
+              { icon: BrainCircuit, text: 'Quiz Master', color: 'text-teal-500', bg: 'bg-teal-50' },
+              { icon: Users, text: 'Kuppi Classes', color: 'text-blue-500', bg: 'bg-blue-50' },
+              { icon: Star, text: 'Leaderboards', color: 'text-amber-500', bg: 'bg-amber-50' }
+            ].map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3 px-6 py-3 rounded-full bg-slate-50 border border-slate-100 hover:border-emerald-200 transition-colors cursor-default">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${item.bg}`}>
+                  <item.icon size={16} className={item.color} />
                 </div>
-                <div className={`text-3xl font-black ${color} mb-1`}>{value}</div>
-                <div className="text-sm font-semibold text-slate-500">{label}</div>
+                <span className="font-bold text-slate-700">{item.text}</span>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Features ── */}
-      <section id="features" className="py-28 px-6 bg-slate-50/60">
+      {/* ── Main Features Grid ────────────────────────── */}
+      <section id="features" className="py-24 px-6 bg-slate-50/50 relative">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 mb-4"><Zap size={11} /> Our Services</span>
-            <h2 className="text-4xl lg:text-5xl font-black text-slate-900 mb-4">Everything You Need to <span className="text-emerald-500">Excel</span></h2>
-            <p className="text-slate-500 text-lg font-medium max-w-2xl mx-auto leading-relaxed">Six powerful tools built for university students — all in one unified platform.</p>
+            <span className="text-emerald-500 font-bold uppercase tracking-wider text-sm mb-2 block">Our Services</span>
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900">Find The <span className="text-emerald-500">Best Features</span> Form UNIcollab</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { icon: Users, title: 'Kuppi Classes', desc: 'Book peer-to-peer tutoring with top-performing students. Learn from those who already aced the course.', light: 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white' },
-              { icon: BookOpen, title: 'Resource Sharing', desc: 'Access and share lecture notes, past papers, slides, and comprehensive study materials across all semesters.', light: 'bg-teal-50 text-teal-600 group-hover:bg-teal-500 group-hover:text-white' },
-              { icon: BrainCircuit, title: 'Interactive Quizzes', desc: 'Test knowledge with curated quizzes per year and semester. Track your scores and climb the leaderboard.', light: 'bg-blue-50 text-blue-600 group-hover:bg-blue-500 group-hover:text-white' },
-              { icon: MapPin, title: 'Study Groups', desc: 'Form or join dedicated study groups to prepare for exams or tackle difficult assignments collaboratively.', light: 'bg-violet-50 text-violet-600 group-hover:bg-violet-500 group-hover:text-white' },
-              { icon: Award, title: 'Achievement Tracking', desc: 'Monitor academic progress through quiz scores and completed modules over the academic years.', light: 'bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white' },
-              { icon: TrendingUp, title: 'Leaderboards', desc: 'Get ranked by academic performance. Compete with peers and motivate each other to achieve more.', light: 'bg-rose-50 text-rose-600 group-hover:bg-rose-500 group-hover:text-white' },
-            ].map(({ icon: Icon, title, desc, light }) => (
-              <div key={title} className="group bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-slate-200/60 hover:-translate-y-1.5 transition-all duration-300 cursor-default">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 transition-all duration-300 ${light}`}><Icon size={26} /></div>
-                <h3 className="text-lg font-black text-slate-900 mb-2.5">{title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed font-medium mb-5">{desc}</p>
-                <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-bold opacity-0 group-hover:opacity-100 transition-all duration-300 -translate-y-1 group-hover:translate-y-0">
-                  Learn more <ChevronRight size={14} />
+              { icon: Users, title: 'Kuppi Classes', desc: 'Book peer-to-peer tutoring sessions with top-performing students in your faculty. Learn efficiently from those who aced it.' },
+              { icon: BookOpen, title: 'Resource Sharing', desc: 'Access and share lecture notes, past papers, slides, and comprehensive study materials across all semesters.' },
+              { icon: BrainCircuit, title: 'Interactive Quizzes', desc: 'Test your knowledge with curated quizzes by year and semester. Track your scores and climb the leaderboard.' },
+              { icon: MapPin, title: 'Study Groups', desc: 'Form or join dedicated study groups to prepare for final exams or tackle difficult assignments collaboratively.' },
+              { icon: Award, title: 'Achievement Tracking', desc: 'Monitor your academic progress through quiz scores and completed modules over the academic years.' },
+              { icon: FileIcon, title: 'Real-time Updates', desc: 'Get direct access to the latest uploaded resources, lecture slides, and newly scheduled Kuppi sessions.' }
+            ].map(({ icon: Icon, title, desc }, idx) => (
+              <div key={idx} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl hover:shadow-emerald-900/5 transition-all group">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 bg-emerald-50 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                  <Icon size={28} />
                 </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed font-medium">{desc}</p>
               </div>
             ))}
           </div>
@@ -194,60 +199,26 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-[2.5rem] p-14 text-center text-white relative overflow-hidden shadow-2xl shadow-emerald-500/25">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-900/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 text-xs font-bold text-white mb-6">
-                <Rocket size={11} /> Start Your Journey Today
-              </div>
-              <h2 className="text-4xl lg:text-5xl font-black mb-5 leading-tight">Ready to Unlock Your <br />Academic Potential?</h2>
-              <p className="text-emerald-50 text-lg max-w-2xl mx-auto mb-10 font-medium leading-relaxed">
-                Join hundreds of students already using UNIcollab to collaborate, learn smarter, and achieve more every semester.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/register" className="inline-flex items-center gap-2 px-10 py-4 rounded-full font-bold text-emerald-600 bg-white hover:bg-slate-50 shadow-xl hover:-translate-y-1 transition-all">
-                  Create Free Account <ArrowRight size={18} />
-                </Link>
-                <Link to="/login" className="inline-flex items-center gap-2 px-10 py-4 rounded-full font-bold text-white border-2 border-white/40 hover:bg-white/10 hover:-translate-y-1 transition-all">
-                  Sign In
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ── */}
+      {/* Feedbacks Section */}
       {feedbacks.length > 0 && (
-        <section className="py-24 px-6 bg-slate-50">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-14">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 mb-4">
-                <Star size={11} className="fill-amber-500 text-amber-500" /> Student Reviews
-              </span>
-              <h2 className="text-4xl font-black text-slate-900 mb-3">What Our <span className="text-emerald-500">Students Say</span></h2>
-              <p className="text-slate-500 font-medium">Real feedback from real students across the university</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <section className="py-24 bg-slate-50">
+          <div className="container mx-auto px-6 text-center">
+            <div className="text-emerald-500 font-bold uppercase tracking-wider mb-2">TESTIMONIALS</div>
+            <h2 className="text-4xl font-extrabold text-slate-900 mb-12">What Our Students Say</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
               {feedbacks.map(fb => (
-                <div key={fb._id} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 hover:-translate-y-1.5 hover:shadow-xl transition-all duration-300 flex flex-col">
-                  <div className="flex gap-1 mb-4">
-                    {[...Array(5)].map((_, i) => <Star key={i} size={15} className={i < fb.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-200 fill-slate-200'} />)}
-                    <span className="ml-1.5 text-xs font-bold text-slate-500">{fb.rating}.0</span>
+                <div key={fb._id} className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 transition-transform hover:-translate-y-1 hover:shadow-md flex flex-col">
+                  <div className="flex gap-1 text-amber-400 mb-4 text-xl">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <span key={i}>{i < fb.rating ? '★' : '☆'}</span>
+                    ))}
                   </div>
-                  <p className="text-slate-600 mb-6 leading-relaxed flex-1 font-medium">"{fb.comment}"</p>
-                  <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center font-bold text-white text-sm shrink-0">
-                      {fb.user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  <p className="text-slate-600 mb-6 italic leading-relaxed flex-1">"{fb.comment}"</p>
+                  <div className="flex items-center gap-3 pt-4 border-t border-slate-50">
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center font-bold text-emerald-600">
+                      {fb.user?.name?.charAt(0) || 'U'}
                     </div>
-                    <div>
-                      <p className="font-bold text-slate-900 text-sm">{fb.user?.name || 'Anonymous Student'}</p>
-                      <p className="text-xs text-slate-400 font-medium">SLTC Student</p>
-                    </div>
+                    <div className="font-bold text-slate-900">{fb.user?.name || 'Anonymous Student'}</div>
                   </div>
                 </div>
               ))}
@@ -256,62 +227,53 @@ export default function Landing() {
         </section>
       )}
 
-      {/* ── Footer ── */}
-      <footer className="bg-slate-900 pt-20 pb-8 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-16">
-            <div className="md:col-span-2">
-              <div className="flex items-center gap-2.5 mb-5">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-400 to-teal-400">
-                  <BookMarked size={16} color="white" />
-                </div>
-                <span className="font-black text-white text-xl">UNI<span className="text-emerald-400">collab</span></span>
+      {/* ── Footer ───────────────────────────────────── */}
+      <footer className="bg-slate-900 pt-16 pb-8 px-6 text-slate-300">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+          <div className="col-span-1 md:col-span-1 border-b md:border-b-0 border-slate-800 pb-8 md:pb-0">
+            <div className="flex items-center gap-2 mb-6">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-400 to-teal-400">
+                <BookMarked size={16} color="white" />
               </div>
-              <p className="text-slate-400 text-sm leading-relaxed font-medium max-w-xs mb-6">Your gateway to academic excellence through collaborative learning, shared resources, and peer mentorship.</p>
-              <div className="flex items-center gap-3">
-                <div className="flex -space-x-1.5">
-                  {['#10B981','#14B8A6','#6366F1','#F59E0B'].map((c, i) => (
-                    <div key={i} className="w-7 h-7 rounded-full border-2 border-slate-900" style={{ background: c }} />
-                  ))}
-                </div>
-                <span className="text-slate-400 text-sm font-medium">200+ students joined</span>
-              </div>
+              <span className="font-black text-white text-xl">UNI<span className="text-emerald-400">collab</span></span>
             </div>
-            <div>
-              <h4 className="text-sm font-black text-white mb-5 uppercase tracking-wider">Features</h4>
-              <ul className="space-y-3 text-sm font-medium text-slate-400">
-                {['Kuppi Classes', 'Resource Sharing', 'Study Groups', 'Quiz Zone', 'Leaderboard'].map(item => (
-                  <li key={item}><a href="#" className="hover:text-emerald-400 transition-colors">{item}</a></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-black text-white mb-5 uppercase tracking-wider">Company</h4>
-              <ul className="space-y-3 text-sm font-medium text-slate-400">
-                {[['About Us', '#about'], ['Academics', '#academics'], ['Features', '#features'], ['Privacy Policy', '#'], ['Terms of Service', '#']].map(([label, href]) => (
-                  <li key={label}><a href={href} className="hover:text-emerald-400 transition-colors">{label}</a></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-black text-white mb-5 uppercase tracking-wider">Contact</h4>
-              <ul className="space-y-4 text-sm font-medium text-slate-400">
-                <li className="flex items-start gap-3"><MapPin size={15} className="mt-0.5 shrink-0 text-emerald-400" />Sri Lanka Technology Campus, Padukka</li>
-                <li className="flex items-center gap-3"><Mail size={15} className="shrink-0 text-emerald-400" />hello@unicollab.edu.lk</li>
-              </ul>
-            </div>
+            <p className="text-slate-400 text-sm leading-relaxed font-medium">Your gateway to academic excellence through collaborative learning and shared resources.</p>
           </div>
-          <div className="border-t border-slate-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-500">
-            <p>© {new Date().getFullYear()} UNIcollab. All rights reserved. Built with ❤️ for SLTC students.</p>
-            <div className="flex gap-6">
-              <a href="#" className="hover:text-emerald-400 transition-colors">Facebook</a>
-              <a href="#" className="hover:text-emerald-400 transition-colors">Twitter</a>
-              <a href="#" className="hover:text-emerald-400 transition-colors">Instagram</a>
-            </div>
+          <div>
+            <h4 className="text-sm font-bold text-white mb-6 uppercase tracking-wider">Features</h4>
+            <ul className="space-y-4 text-sm font-medium text-slate-400">
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Kuppi Classes</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Resource Sharing</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Study Groups</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Quiz Zone</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-white mb-6 uppercase tracking-wider">Company</h4>
+            <ul className="space-y-4 text-sm font-medium text-slate-400">
+              <li><a href="#about" className="hover:text-emerald-400 transition-colors">About Us</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Careers</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Privacy Policy</a></li>
+              <li><a href="#" className="hover:text-emerald-400 transition-colors">Terms of Service</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-white mb-6 uppercase tracking-wider">Contact</h4>
+            <ul className="space-y-4 text-sm font-medium text-slate-400">
+              <li className="flex items-start gap-3"><MapPin size={16} className="mt-0.5 shrink-0 text-emerald-400" /> Sri Lanka Technology Campus</li>
+              <li className="flex items-center gap-3"><Mail size={16} className="shrink-0 text-emerald-400" /> hello@unicollab.edu</li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs font-medium text-slate-500">
+          <p>© {new Date().getFullYear()} UNIcollab. All rights reserved.</p>
+          <div className="flex gap-6 mt-4 sm:mt-0">
+            <a href="#" className="hover:text-white transition-colors">FB</a>
+            <a href="#" className="hover:text-white transition-colors">TW</a>
+            <a href="#" className="hover:text-white transition-colors">IG</a>
           </div>
         </div>
       </footer>
-
     </div>
   );
 }

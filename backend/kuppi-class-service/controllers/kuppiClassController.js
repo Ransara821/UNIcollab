@@ -49,77 +49,10 @@ const getKuppiClassById = async (req, res) => {
 // POST /api/kuppi-class  (protect + recognizedOnly)
 const createKuppiClass = async (req, res) => {
   try {
-    // Ensure user is authenticated (should be caught by protect middleware, but double-check)
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ message: 'User must be authenticated to create a session' });
-    }
-
     const { title, subject, academicYear, description, location, sessionDate, postedBy, capacity } = req.body;
-    const errors = {};
 
-    // Validate title
-    if (!title || !title.trim()) {
-      errors.title = 'Title is required';
-    }
-
-    // Validate subject
-    if (!subject || !subject.trim()) {
-      errors.subject = 'Subject is required';
-    } else if (!SUBJECTS.includes(subject)) {
-      errors.subject = 'Invalid subject selected';
-    }
-
-    // Validate academicYear
-    if (!academicYear || !academicYear.trim()) {
-      errors.academicYear = 'Academic Year is required';
-    } else if (!ACADEMIC_YEARS.includes(academicYear)) {
-      errors.academicYear = 'Invalid academic year selected';
-    }
-
-    // Validate location
-    if (!location || !location.trim()) {
-      errors.location = 'Location is required';
-    }
-
-    // Validate postedBy (your name)
-    if (!postedBy || !postedBy.trim()) {
-      errors.postedBy = 'Your Name is required';
-    }
-
-    // Validate description
-    if (!description || !description.trim()) {
-      errors.description = 'Description is required';
-    } else if (description.trim().length <= 10) {
-      errors.description = 'Description must be more than 10 characters';
-    }
-
-    // Validate sessionDate
-    if (!sessionDate) {
-      errors.sessionDate = 'Date & Time is required';
-    } else {
-      const selectedDate = new Date(sessionDate);
-      const now = new Date();
-      
-      if (isNaN(selectedDate.getTime())) {
-        errors.sessionDate = 'Invalid date format';
-      } else if (selectedDate < now) {
-        errors.sessionDate = 'Date cannot be in the past';
-      }
-    }
-
-    // Validate capacity
-    if (!capacity) {
-      errors.capacity = 'Capacity is required';
-    } else {
-      const capacityNum = Number(capacity);
-      if (isNaN(capacityNum) || capacityNum < 1 || capacityNum > 200) {
-        errors.capacity = 'Capacity must be a number between 1 and 200';
-      }
-    }
-
-    // Return validation errors if any
-    if (Object.keys(errors).length > 0) {
-      return res.status(400).json({ message: 'Validation failed', errors });
+    if (!title || !subject || !academicYear || !sessionDate) {
+      return res.status(400).json({ message: 'title, subject, academicYear, and sessionDate are required.' });
     }
 
     const kuppiClass = await KuppiClass.create({
@@ -131,7 +64,7 @@ const createKuppiClass = async (req, res) => {
       sessionDate,
       postedBy,
       postedById: req.user.id,
-      capacity: Number(capacity),
+      capacity:   capacity ? Number(capacity) : 20,
     });
 
     res.status(201).json(kuppiClass);

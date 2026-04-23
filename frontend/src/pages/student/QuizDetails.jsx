@@ -63,14 +63,6 @@ export default function QuizDetails() {
     }
   };
 
-  const executeResume = async () => {
-    setStarting(true);
-    try {
-      await startAttempt({ quizId: id });
-    } catch (_) { }
-    navigate(`/student/quizzes/${id}/attempt`);
-  };
-
   if(loading) return <div className="p-20 text-center animate-pulse text-emerald-500 font-bold text-xl flex flex-col items-center justify-center gap-3"><div className="w-10 h-10 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin"></div>Loading Quiz...</div>;
   if(!quiz) return <div className="p-20 text-center text-red-500 font-bold">Error 104 - Assessment Missing.</div>;
 
@@ -121,13 +113,8 @@ export default function QuizDetails() {
                  <span className="font-black bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-xl border border-emerald-100">{quiz.timeLimit} Mins</span>
               </div>
               <div className="flex items-center justify-between p-5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-100 transition-all">
-                 <span className="flex items-center gap-3 font-semibold text-slate-700 tracking-wide">
-                   <HelpCircle size={20} className="text-emerald-500"/>
-                   {quiz.questionsToDisplay && quiz.questionsToDisplay < (quiz.questions?.length || 0) ? 'Questions Per Attempt' : 'Total Questions'}
-                 </span>
-                 <span className="font-black bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-xl border border-emerald-100">
-                   {quiz.questionsToDisplay && quiz.questionsToDisplay < (quiz.questions?.length || 0) ? quiz.questionsToDisplay : (quiz.questions?.length || 0)}
-                 </span>
+                 <span className="flex items-center gap-3 font-semibold text-slate-700 tracking-wide"><HelpCircle size={20} className="text-emerald-500"/> Total Questions</span>
+                 <span className="font-black bg-emerald-50 text-emerald-700 px-4 py-1.5 rounded-xl border border-emerald-100">{quiz.questions?.length || 0}</span>
               </div>
               <div className="flex items-center justify-between p-5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md hover:border-emerald-100 transition-all">
                  <span className="flex items-center gap-3 font-semibold text-slate-700 tracking-wide"><AlertTriangle size={20} className="text-emerald-500"/> Allowed Submissions</span>
@@ -143,8 +130,8 @@ export default function QuizDetails() {
            </div>
            
            {inProgress ? (
-              <button disabled={starting} onClick={executeResume} className="w-full md:w-auto px-10 py-4 rounded-xl font-black text-white shadow-xl shadow-amber-500/30 transition-all bg-amber-500 hover:bg-amber-600 hover:-translate-y-1">
-                {starting ? 'Loading...' : 'Resume Active Attempt'}
+              <button disabled={starting} onClick={() => navigate(`/student/quizzes/${id}/attempt`)} className="w-full md:w-auto px-10 py-4 rounded-xl font-black text-white shadow-xl shadow-amber-500/30 transition-all bg-amber-500 hover:bg-amber-600 hover:-translate-y-1">
+                Resume Active Attempt
               </button>
            ) : canAttempt ? (
               <button disabled={starting} onClick={() => setShowConfirm(true)} className="w-full md:w-auto px-12 py-4 rounded-xl font-black text-white shadow-xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:-translate-y-1 transition-all text-lg tracking-wide bg-emerald-500 hover:bg-emerald-600">

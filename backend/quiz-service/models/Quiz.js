@@ -10,9 +10,8 @@ const quizSchema = new mongoose.Schema({
   totalMarks:      { type: Number, default: 0 },
   passMark:        { type: Number, required: true, min: 0 },
   timeLimit:       { type: Number, required: true, min: 1 }, // in minutes
-  attemptsAllowed:     { type: Number, default: 1, min: 1 },
-  questionsToDisplay:  { type: Number, default: null, min: 1 },
-  status:              { type: String, enum: ['draft', 'published'], default: 'draft' },
+  attemptsAllowed: { type: Number, default: 1, min: 1 },
+  status:          { type: String, enum: ['draft', 'published'], default: 'draft' },
   createdBy:       { type: String, required: true },
   importedFrom:    { type: String, default: 'manual' }, // 'manual' | 'quizapi'
 }, { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } });
