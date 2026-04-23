@@ -57,7 +57,18 @@ export default function QuizAttempt() {
       }
 
       setQuiz(quizData);
-      setQuestions(qsRes.data.data);
+
+      let questionsData = qsRes.data.data;
+      if (active.selectedQuestionIds && active.selectedQuestionIds.length > 0) {
+        const qMap = {};
+        questionsData.forEach(q => { qMap[q._id] = q; });
+        const ordered = active.selectedQuestionIds.map(sid => qMap[sid.toString ? sid.toString() : sid]).filter(Boolean);
+        if (ordered.length > 0) questionsData = ordered;
+      } else if (quizData.questionsToDisplay && quizData.questionsToDisplay < questionsData.length) {
+        const shuffled = [...questionsData].sort(() => Math.random() - 0.5);
+        questionsData = shuffled.slice(0, quizData.questionsToDisplay);
+      }
+      setQuestions(questionsData);
       setAttempt(active);
 
       const elapsedSec = Math.floor((Date.now() - new Date(active.startedAt).getTime()) / 1000);
