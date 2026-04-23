@@ -47,14 +47,14 @@ export default function Login() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-100/40 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 -z-0 mix-blend-multiply" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-teal-50/60 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 -z-0 mix-blend-multiply" />
 
-        <div className="flex items-center gap-3 relative z-10">
+        <Link to="/" className="flex items-center gap-3 relative z-10 w-fit hover:opacity-80 transition-opacity">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/20">
             <BookMarked size={20} color="white" />
           </div>
           <span className="text-2xl font-black text-slate-900 tracking-tight">
             UNI<span className="text-emerald-500">collab</span>
           </span>
-        </div>
+        </Link>
 
         <div className="relative z-10 max-w-lg">
           <h1 className="text-5xl font-black text-slate-900 mb-6 leading-[1.15] tracking-tight">
@@ -77,20 +77,20 @@ export default function Login() {
           </div>
         </div>
 
-        <p className="text-slate-400 font-medium text-sm relative z-10">© {new Date().getFullYear()} UNIcollab. All rights reserved.</p>
+        <p className="text-slate-400 font-medium text-sm relative z-10"> {new Date().getFullYear()} UNIcollab. All rights reserved.</p>
       </div>
 
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 bg-white relative">
         {/* Mobile Logo */}
-        <div className="lg:hidden flex items-center gap-3 mb-12">
+        <Link to="/" className="lg:hidden flex items-center gap-3 mb-12 hover:opacity-80 transition-opacity">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-400 shadow-md shadow-emerald-500/20">
             <BookMarked size={20} color="white" />
           </div>
           <span className="text-2xl font-black text-slate-900 tracking-tight">
             UNI<span className="text-emerald-500">collab</span>
           </span>
-        </div>
+        </Link>
 
         <div className="w-full max-w-md animate-in slide-in-from-bottom-4 duration-500 relative z-10">
           <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-900/5">

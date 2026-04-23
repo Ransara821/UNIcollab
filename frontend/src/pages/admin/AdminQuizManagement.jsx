@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { getQuizzes, createQuiz, updateQuiz, deleteQuiz, getSubjects } from '../../services/quizService';
 import {
   PlusCircle, Pencil, Trash2, Eye, EyeOff, HelpCircle,
-  BookOpen, GraduationCap, Clock, FileWarning, Search, X, Type, AlignLeft, Building, Target, Zap, TrendingUp, CheckCircle2, AlertTriangle
+  BookOpen, GraduationCap, Clock, FileWarning, Search, X, Type, AlignLeft, Building, Target, Zap, TrendingUp, CheckCircle2, AlertTriangle, Shuffle
 } from 'lucide-react';
 
-const BLANK = { title: '', description: '', subjectId: '', year: '1st Year', semester: 'Semester 1', difficulty: 'medium', timeLimit: 30, passMark: 50, attemptsAllowed: 1 };
+const BLANK = { title: '', description: '', subjectId: '', year: '1st Year', semester: 'Semester 1', difficulty: 'medium', timeLimit: 30, passMark: 50, attemptsAllowed: 1, questionsToDisplay: '' };
 const YEARS     = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 const SEMESTERS = ['Semester 1', 'Semester 2'];
 const DIFFICULTIES = ['easy', 'medium', 'hard'];
@@ -72,7 +72,9 @@ function DeleteQuizModal({ quiz, onCancel, onConfirm, loading }) {
 
 // ── Quiz Form Modal ───────────────────────────────────────────
 function QuizFormModal({ quiz, subjects, onClose, onSaved, onSuccess }) {
-  const [form, setForm] = useState(quiz ? { ...quiz, subjectId: quiz.subjectId?._id || quiz.subjectId } : { ...BLANK });
+  const [form, setForm] = useState(quiz
+    ? { ...quiz, subjectId: quiz.subjectId?._id || quiz.subjectId, questionsToDisplay: quiz.questionsToDisplay ?? '' }
+    : { ...BLANK });
 
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState('');
@@ -84,11 +86,12 @@ function QuizFormModal({ quiz, subjects, onClose, onSaved, onSuccess }) {
     if (!form.subjectId) return setErr('Please select a subject to bind this quiz.');
     setSaving(true); setErr('');
     try {
+      const payload = { ...form, questionsToDisplay: form.questionsToDisplay !== '' ? +form.questionsToDisplay : null };
       if (quiz) {
-        await updateQuiz(quiz._id, form);
+        await updateQuiz(quiz._id, payload);
         onSuccess('update', 'Quiz updated successfully!');
       } else {
-        await createQuiz(form);
+        await createQuiz(payload);
         onSuccess('success', 'Quiz created successfully!');
       }
       onSaved();
@@ -222,6 +225,21 @@ function QuizFormModal({ quiz, subjects, onClose, onSaved, onSuccess }) {
                 className={inputBase}
               />
             </div>
+          </div>
+
+          {/* Questions to Display */}
+          <div className="bg-indigo-50/60 border border-indigo-100 rounded-2xl p-4 space-y-2">
+            <label className={labelBase + ' text-indigo-600'}><Shuffle size={11} className="text-indigo-500" /> Questions to Display per User</label>
+            <input
+              type="number" min={1}
+              value={form.questionsToDisplay}
+              onChange={e => setObj('questionsToDisplay', e.target.value)}
+              className={inputBase + ' border-indigo-100 focus:border-indigo-400'}
+              placeholder="Leave empty to show all questions"
+            />
+            <p className="text-[11px] font-medium text-indigo-500 flex items-center gap-1.5">
+              <Shuffle size={10} /> Each user receives a <strong>random subset</strong> of questions. Must be ≤ total questions added.
+            </p>
           </div>
 
           {/* Error */}
@@ -371,6 +389,12 @@ export default function AdminQuizManagement() {
                   <span className="flex items-center gap-1.5"><Clock size={14} className="text-emerald-500" /> {quiz.timeLimit} mins</span>
                   <span className="text-emerald-200">|</span>
                   <span className="flex items-center gap-1.5"><HelpCircle size={14} className="text-emerald-500" /> {quiz.questionCount} Questions</span>
+                  {quiz.questionsToDisplay && quiz.questionsToDisplay < quiz.questionCount && (
+                    <>
+                      <span className="text-emerald-200">|</span>
+                      <span className="flex items-center gap-1.5 text-indigo-600 font-bold"><Shuffle size={14} className="text-indigo-400" /> Shows {quiz.questionsToDisplay} randomly</span>
+                    </>
+                  )}
                 </div>
               </div>
 
