@@ -12,20 +12,45 @@ exports.startAttempt = async (req, res) => {
     if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found' });
     if (quiz.status !== 'published') return res.status(400).json({ success: false, message: 'Quiz is not published' });
 
-    const existingAttemptsCount = await QuizAttempt.countDocuments({ quizId, studentId: userId });
-    if (existingAttemptsCount >= quiz.attemptsAllowed) {
+    const activeAttempt = await QuizAttempt.findOne({ quizId, studentId: userId, status: 'in-progress' });
+    if (activeAttempt) {
+      if (!activeAttempt.selectedQuestionIds || activeAttempt.selectedQuestionIds.length === 0) {
+        const allQ = await Question.find({ quizId: quiz._id }).select('_id');
+        let ids = allQ.map(q => q._id);
+        if (quiz.questionsToDisplay && quiz.questionsToDisplay < ids.length) {
+          for (let i = ids.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [ids[i], ids[j]] = [ids[j], ids[i]];
+          }
+          ids = ids.slice(0, quiz.questionsToDisplay);
+        }
+        activeAttempt.selectedQuestionIds = ids;
+        await activeAttempt.save();
+      }
+      return res.json({ success: true, data: activeAttempt, message: 'Resuming existing attempt' });
+    }
+
+    const completedAttemptsCount = await QuizAttempt.countDocuments({ quizId, studentId: userId, status: { $in: ['completed', 'timeout'] } });
+    if (completedAttemptsCount >= quiz.attemptsAllowed) {
       return res.status(403).json({ success: false, message: 'Attempt limit reached' });
     }
 
-    const activeAttempt = await QuizAttempt.findOne({ quizId, studentId: userId, status: 'in-progress' });
-    if (activeAttempt) {
-      return res.json({ success: true, data: activeAttempt, message: 'Resuming existing attempt' });
+    const allQuestions = await Question.find({ quizId: quiz._id }).select('_id');
+    let selectedQuestionIds = allQuestions.map(q => q._id);
+
+    if (quiz.questionsToDisplay && quiz.questionsToDisplay < allQuestions.length) {
+      for (let i = selectedQuestionIds.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [selectedQuestionIds[i], selectedQuestionIds[j]] = [selectedQuestionIds[j], selectedQuestionIds[i]];
+      }
+      selectedQuestionIds = selectedQuestionIds.slice(0, quiz.questionsToDisplay);
     }
 
     const attempt = await QuizAttempt.create({
       quizId,
       studentId: userId,
       userName,
+      selectedQuestionIds,
       status: 'in-progress',
       startedAt: Date.now(),
       year: quiz.year,
@@ -58,7 +83,15 @@ exports.submitAttempt = async (req, res) => {
        durationUsed = maxDuration; 
     }
 
-    const questions = await Question.find({ quizId: quiz._id });
+    let questionIds;
+    if (attempt.selectedQuestionIds && attempt.selectedQuestionIds.length > 0) {
+      questionIds = attempt.selectedQuestionIds;
+    } else {
+      const allQ = await Question.find({ quizId: quiz._id }).select('_id');
+      questionIds = allQ.map(q => q._id);
+    }
+
+    const questions = await Question.find({ _id: { $in: questionIds } });
     const questionMap = {};
     questions.forEach(q => questionMap[q._id.toString()] = q);
 
@@ -92,7 +125,7 @@ exports.submitAttempt = async (req, res) => {
     attempt.score = score;
     attempt.correctCount = correctCount;
     attempt.wrongCount = wrongCount;
-    attempt.totalQuestions = questions.length;
+    attempt.totalQuestions = questionIds.length;
     attempt.durationUsed = durationUsed;
     attempt.submittedAt = now;
     attempt.status = 'completed';
@@ -110,7 +143,7 @@ exports.getMyAttempts = async (req, res) => {
     const studentId = req.user?.id || 'temp-user';
     const attempts = await QuizAttempt.find({ studentId })
       .populate('quizId', 'title subjectId timeLimit passMark')
-      .populate('answers.questionId', 'question questionText marks explanation')
+      .populate('answers.questionId', 'question questionText marks explanation options')
       .sort('-createdAt');
     res.json({ success: true, count: attempts.length, data: attempts });
   } catch (err) {
@@ -122,7 +155,7 @@ exports.getAllAttempts = async (req, res) => {
   try {
     const attempts = await QuizAttempt.find({})
       .populate('quizId', 'title subjectId')
-      .populate('answers.questionId', 'question questionText marks explanation')
+      .populate('answers.questionId', 'question questionText marks explanation options')
       .sort('-createdAt');
     res.json({ success: true, count: attempts.length, data: attempts });
   } catch (err) {

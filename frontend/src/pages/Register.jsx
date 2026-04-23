@@ -7,17 +7,28 @@ import { User, Hash, Phone, Mail, Lock, AlertCircle, BookMarked, ArrowRight } fr
 export default function Register() {
   const [form, setForm] = useState({ name: '', phoneNumber: '', email: '', password: '', role: 'student' });
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const handleEmailChange = (e) => {
+    const val = e.target.value;
+    if (/[A-Z]/.test(val)) {
+      setEmailError('Email must use lowercase letters only — no capital letters allowed.');
+    } else {
+      setEmailError('');
+    }
+    setForm({ ...form, email: val.toLowerCase() });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (emailError) return;
     setLoading(true);
     setError('');
     try {
       await registerUser(form);
-      // Redirect to login page instead of dashboard
       navigate('/login', { state: { message: 'Account created successfully! Please log in.' } });
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
@@ -94,10 +105,19 @@ export default function Register() {
                 type="email"
                 placeholder="name@university.edu"
                 value={form.email}
-                onChange={e => setForm({ ...form, email: e.target.value })}
-                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all text-sm font-medium"
+                onChange={handleEmailChange}
+                className={`w-full px-5 py-3.5 bg-slate-50 border rounded-2xl focus:outline-none focus:ring-4 transition-all text-sm font-medium ${
+                  emailError
+                    ? 'bg-red-50 border-2 border-red-400 focus:border-red-500 focus:ring-red-500/10'
+                    : 'border-slate-200 focus:ring-emerald-500/10 focus:border-emerald-500'
+                }`}
                 required
               />
+              {emailError && (
+                <p className="text-xs font-semibold text-red-500 flex items-center gap-1 mt-1">
+                  <AlertCircle size={13} className="shrink-0" /> {emailError}
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-slate-700 ml-1">Password</label>

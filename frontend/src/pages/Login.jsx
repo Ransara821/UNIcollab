@@ -7,14 +7,26 @@ import { Mail, Lock, AlertCircle, BookMarked, ArrowRight, CheckCircle2 } from 'l
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const successMessage = location.state?.message;
 
+  const handleEmailChange = (e) => {
+    const val = e.target.value;
+    if (/[A-Z]/.test(val)) {
+      setEmailError('Email must use lowercase letters only — no capital letters allowed.');
+    } else {
+      setEmailError('');
+    }
+    setForm({ ...form, email: val.toLowerCase() });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (emailError) return;
     setLoading(true);
     setError('');
     try {
@@ -35,14 +47,14 @@ export default function Login() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-100/40 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 -z-0 mix-blend-multiply" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-teal-50/60 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 -z-0 mix-blend-multiply" />
 
-        <div className="flex items-center gap-3 relative z-10">
+        <Link to="/" className="flex items-center gap-3 relative z-10 w-fit hover:opacity-80 transition-opacity">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/20">
             <BookMarked size={20} color="white" />
           </div>
           <span className="text-2xl font-black text-slate-900 tracking-tight">
             UNI<span className="text-emerald-500">collab</span>
           </span>
-        </div>
+        </Link>
 
         <div className="relative z-10 max-w-lg">
           <h1 className="text-5xl font-black text-slate-900 mb-6 leading-[1.15] tracking-tight">
@@ -65,20 +77,20 @@ export default function Login() {
           </div>
         </div>
 
-        <p className="text-slate-400 font-medium text-sm relative z-10">© {new Date().getFullYear()} UNIcollab. All rights reserved.</p>
+        <p className="text-slate-400 font-medium text-sm relative z-10"> {new Date().getFullYear()} UNIcollab. All rights reserved.</p>
       </div>
 
       {/* Right Panel - Form */}
       <div className="flex-1 flex flex-col justify-center items-center px-6 py-12 bg-white relative">
         {/* Mobile Logo */}
-        <div className="lg:hidden flex items-center gap-3 mb-12">
+        <Link to="/" className="lg:hidden flex items-center gap-3 mb-12 hover:opacity-80 transition-opacity">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-emerald-500 to-teal-400 shadow-md shadow-emerald-500/20">
             <BookMarked size={20} color="white" />
           </div>
           <span className="text-2xl font-black text-slate-900 tracking-tight">
             UNI<span className="text-emerald-500">collab</span>
           </span>
-        </div>
+        </Link>
 
         <div className="w-full max-w-md animate-in slide-in-from-bottom-4 duration-500 relative z-10">
           <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-slate-900/5">
@@ -104,12 +116,21 @@ export default function Login() {
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2 px-1">Email Address</label>
                 <div className="relative">
-                  <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+                  <Mail size={18} className={`absolute left-4 top-1/2 -translate-y-1/2 ${emailError ? 'text-red-400' : 'text-slate-400'}`} />
+                  <input type="email" value={form.email} onChange={handleEmailChange}
                     placeholder="Enter your email" required
-                    className="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-slate-800 placeholder-slate-400 bg-slate-50 border border-slate-200 outline-none transition-all focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-bold"
+                    className={`w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-slate-800 placeholder-slate-400 outline-none transition-all font-bold ${
+                      emailError
+                        ? 'bg-red-50 border-2 border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                        : 'bg-slate-50 border border-slate-200 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10'
+                    }`}
                   />
                 </div>
+                {emailError && (
+                  <p className="mt-2 text-xs font-semibold text-red-500 flex items-center gap-1">
+                    <AlertCircle size={13} className="shrink-0" /> {emailError}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-slate-700 ml-1">Password</label>

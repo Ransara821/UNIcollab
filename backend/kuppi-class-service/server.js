@@ -6,7 +6,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 
 dotenv.config();
-dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const app = express();
 
@@ -19,7 +19,7 @@ app.use(express.json());
 app.use('/api/kuppi-class', require('./routes/kuppiClassRoutes'));
 
 app.get('/', (req, res) => {
-  res.json({ message: 'Kuppi Class Service is running ✅' });
+  res.json({ message: 'Kuppi Class Service is running! ✅' });
 });
 
 const PORT = process.env.PORT || 5002;

@@ -3,6 +3,34 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getQuizById, getQuestions, getMyAttempts, submitAttempt } from '../../services/quizService';
 import { Clock, ShieldAlert, CheckCircle, ChevronRight, ChevronLeft, Flag, Send } from 'lucide-react';
 
+function ConfirmationModal({ onConfirm, onCancel }) {
+  return (
+    <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col items-start gap-4">
+        <div className="flex items-start gap-4">
+          <div className="w-11 h-11 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+            <CheckCircle size={20} className="text-indigo-500" strokeWidth={2.5} />
+          </div>
+          <div>
+            <h2 className="text-base font-black text-slate-900">Finish Assessment</h2>
+            <p className="text-sm font-medium text-slate-500 mt-0.5 leading-relaxed">Are you sure you want to submit your answers? You cannot change them after submission.</p>
+          </div>
+        </div>
+        <div className="flex gap-3 w-full pt-1">
+          <button onClick={onCancel}
+            className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm hover:bg-slate-50 transition-colors">
+            Review Answers
+          </button>
+          <button onClick={onConfirm}
+            className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm shadow-lg shadow-indigo-500/25 transition-all">
+            Submit Exam
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function QuizAttempt() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,6 +42,7 @@ export default function QuizAttempt() {
   const [timeLeft, setTimeLeft] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const loadData = async () => {
     try {
@@ -28,7 +57,18 @@ export default function QuizAttempt() {
       }
 
       setQuiz(quizData);
-      setQuestions(qsRes.data.data);
+
+      let questionsData = qsRes.data.data;
+      if (active.selectedQuestionIds && active.selectedQuestionIds.length > 0) {
+        const qMap = {};
+        questionsData.forEach(q => { qMap[q._id] = q; });
+        const ordered = active.selectedQuestionIds.map(sid => qMap[sid.toString ? sid.toString() : sid]).filter(Boolean);
+        if (ordered.length > 0) questionsData = ordered;
+      } else if (quizData.questionsToDisplay && quizData.questionsToDisplay < questionsData.length) {
+        const shuffled = [...questionsData].sort(() => Math.random() - 0.5);
+        questionsData = shuffled.slice(0, quizData.questionsToDisplay);
+      }
+      setQuestions(questionsData);
       setAttempt(active);
 
       const elapsedSec = Math.floor((Date.now() - new Date(active.startedAt).getTime()) / 1000);
@@ -126,7 +166,7 @@ export default function QuizAttempt() {
              <div className="flex items-center justify-between">
                 <button disabled={currentIdx === 0} onClick={() => setCurrentIdx(i => i - 1)} className="px-6 py-3.5 rounded-xl font-bold border-2 border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-indigo-600 disabled:opacity-40 transition-colors flex items-center gap-2"><ChevronLeft size={18}/> Previous</button>
                 {currentIdx === questions.length - 1 ? (
-                   <button disabled={submitting} onClick={() => { if(window.confirm("Submit answers and close the session?")) handleSubmit(); }} className="px-8 py-3.5 rounded-xl font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2">Finish Exam <Send size={18}/></button>
+                   <button disabled={submitting} onClick={() => setShowConfirmModal(true)} className="px-8 py-3.5 rounded-xl font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2">Finish Exam <Send size={18}/></button>
                 ) : (
                    <button onClick={() => setCurrentIdx(i => i + 1)} className="px-8 py-3.5 rounded-xl font-black text-white bg-slate-800 hover:bg-indigo-600 shadow-lg transition-all flex items-center gap-2">Next <ChevronRight size={18}/></button>
                 )}
@@ -135,7 +175,7 @@ export default function QuizAttempt() {
 
           <div className="hidden lg:block">
              <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl p-6 sticky top-32">
-                <h4 className="font-black text-slate-800 mb-6 uppercase tracking-wider text-sm flex items-center gap-2"><Flag className="text-indigo-500"/> Node Navigator</h4>
+                <h4 className="font-black text-slate-800 mb-6 uppercase tracking-wider text-sm flex items-center gap-2"><Flag className="text-indigo-500"/>Navigator</h4>
                 <div className="grid grid-cols-5 gap-3">
                    {questions.map((q, i) => {
                       const isAns = answers[q._id];
@@ -154,7 +194,7 @@ export default function QuizAttempt() {
                    <div className="flex items-center gap-3"><div className="w-4 h-4 rounded-md bg-indigo-600"/> Current Node</div>
                 </div>
 
-                <button disabled={submitting} onClick={() => { if(window.confirm("Submit early?")) handleSubmit(); }} className="mt-8 w-full py-3 rounded-xl border-2 border-slate-900 bg-slate-900 text-white font-bold hover:bg-slate-800 transition-colors">Submit All</button>
+                <button disabled={submitting} onClick={() => setShowConfirmModal(true)} className="mt-8 w-full py-3 rounded-xl border-2 border-slate-900 bg-slate-900 text-white font-bold hover:bg-slate-800 transition-colors">Submit All</button>
              </div>
           </div>
        </div>
@@ -168,6 +208,16 @@ export default function QuizAttempt() {
              </div>
           </div>
        )}
+
+        {showConfirmModal && (
+          <ConfirmationModal 
+             onCancel={() => setShowConfirmModal(false)}
+             onConfirm={() => {
+               setShowConfirmModal(false);
+               handleSubmit();
+             }}
+          />
+        )}
     </div>
   );
 }
